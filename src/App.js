@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import CustomerOnboarding from './components/CustomerOnboarding';
 import QueueDisplay from './components/QueueDisplay';
 import AppointmentScheduler from './components/AppointmentScheduler';
+import AppointmentConfirmationModal from './components/AppointmentConfirmationModal';
 import { calculateScore } from './utils/scoring';
 import { Routes, Route, useLocation, useNavigate, Navigate } from 'react-router-dom';
 
@@ -12,6 +13,8 @@ function App() {
   const [currentCustomer, setCurrentCustomer] = useState(null);
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showConfirmationModal, setShowConfirmationModal] = useState(false);
+  const [confirmationData, setConfirmationData] = useState(null);
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -91,16 +94,22 @@ function App() {
       // Refresh customers list
       await fetchCustomers();
       
-      // Show success message and return to onboarding
-      alert(`Appointment scheduled for ${appointmentData.customerName} at ${appointmentData.appointmentTime.toLocaleString()}`);
-      navigate('/customer-entry');
-      setCurrentCustomer(null);
+      // Show custom confirmation modal
+      setConfirmationData(appointmentData);
+      setShowConfirmationModal(true);
     } catch (error) {
       console.error('Error updating customer status:', error);
     }
   };
 
   const handleBackFromScheduling = () => {
+    navigate('/customer-entry');
+    setCurrentCustomer(null);
+  };
+
+  const handleCloseConfirmationModal = () => {
+    setShowConfirmationModal(false);
+    setConfirmationData(null);
     navigate('/customer-entry');
     setCurrentCustomer(null);
   };
@@ -192,6 +201,13 @@ function App() {
           </div>
         </div>
       )}
+
+      {/* Custom Confirmation Modal */}
+      <AppointmentConfirmationModal
+        isOpen={showConfirmationModal}
+        onClose={handleCloseConfirmationModal}
+        appointmentData={confirmationData}
+      />
     </div>
   );
 }
