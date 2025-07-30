@@ -214,9 +214,10 @@ const QueueDisplay = ({ customers }) => {
                 className="border border-gray-300 rounded-carmax px-3 py-2 text-sm focus:ring-2 focus:ring-carmax-blue focus:border-carmax-blue"
               >
                 <option value="all">All Priorities</option>
-                <option value="high">High Priority</option>
-                <option value="medium">Medium Priority</option>
-                <option value="low">Low Priority</option>
+                <option value="Critical">Critical Priority</option>
+                <option value="High">High Priority</option>
+                <option value="Medium">Medium Priority</option>
+                <option value="Low">Low Priority</option>
               </select>
             </div>
           </div>
