@@ -30,7 +30,6 @@ db.serialize(() => {
     willFinalizePaperwork BOOLEAN,
     needsAppraisal BOOLEAN,
     wantsWarranty BOOLEAN,
-    urgencyLevel TEXT,
     preferredTimeframe TEXT,
     intentType TEXT,
     timeAllocation TEXT,
@@ -49,12 +48,11 @@ db.serialize(() => {
         {
           name: "John Smith",
           rawInput: "I'm looking to buy a new SUV today and wanted to check out options",
-          visitReason: "purchase",
+          visitReason: JSON.stringify(["purchase"]),
           needsFinancing: 1,
           willFinalizePaperwork: 1,
           needsAppraisal: null,
           wantsWarranty: 1,
-          urgencyLevel: "high",
           preferredTimeframe: "today",
           intentType: "purchase",
           timeAllocation: "extended",
@@ -63,12 +61,11 @@ db.serialize(() => {
         {
           name: "Sarah Johnson",
           rawInput: "I need to get my oil changed and brakes checked",
-          visitReason: "browsing",
+          visitReason: JSON.stringify(["browsing"]),
           needsFinancing: null,
           willFinalizePaperwork: null,
           needsAppraisal: null,
           wantsWarranty: 0,
-          urgencyLevel: "medium",
           preferredTimeframe: "this week",
           intentType: "browsing",
           timeAllocation: "short",
@@ -77,12 +74,11 @@ db.serialize(() => {
         {
           name: "Mike Davis",
           rawInput: "Just browsing around, might be interested in trading in my car",
-          visitReason: "trade_in",
+          visitReason: JSON.stringify(["trade_in"]),
           needsFinancing: null,
           willFinalizePaperwork: null,
           needsAppraisal: 1,
           wantsWarranty: 0,
-          urgencyLevel: "low",
           preferredTimeframe: "this month",
           intentType: "trade-in",
           timeAllocation: "standard",
@@ -91,12 +87,11 @@ db.serialize(() => {
         {
           name: "Lisa Chen",
           rawInput: "I need to buy a car urgently for work, budget around $25k",
-          visitReason: "test_drive",
+          visitReason: JSON.stringify(["test_drive"]),
           needsFinancing: 1,
           willFinalizePaperwork: 1,
           needsAppraisal: null,
           wantsWarranty: 1,
-          urgencyLevel: "high",
           preferredTimeframe: "today",
           intentType: "purchase",
           timeAllocation: "extended",
@@ -106,9 +101,9 @@ db.serialize(() => {
 
       const stmt = db.prepare(`INSERT INTO customers (
         name, rawInput, visitReason, needsFinancing, willFinalizePaperwork, 
-        needsAppraisal, wantsWarranty, urgencyLevel, preferredTimeframe, 
+        needsAppraisal, wantsWarranty, preferredTimeframe, 
         intentType, timeAllocation, score, createdAt
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`);
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`);
 
       const now = new Date();
       sampleCustomers.forEach((customer, index) => {
@@ -124,7 +119,7 @@ db.serialize(() => {
           customer.name, customer.rawInput, customer.visitReason,
           customer.needsFinancing, customer.willFinalizePaperwork,
           customer.needsAppraisal, customer.wantsWarranty,
-          customer.urgencyLevel, customer.preferredTimeframe,
+          customer.preferredTimeframe,
           customer.intentType, customer.timeAllocation, customer.score,
           pastTimes[index].toISOString()
         ]);
@@ -145,7 +140,27 @@ app.get('/api/customers', (req, res) => {
       res.status(500).json({ error: err.message });
       return;
     }
-    res.json(rows);
+    // Parse visitReason from JSON string to array, or handle old string format
+    const processedRows = rows.map(row => {
+      let visitReason;
+      if (row.visitReason) {
+        try {
+          // Try to parse as JSON (new format)
+          visitReason = JSON.parse(row.visitReason);
+        } catch (error) {
+          // If parsing fails, it's the old string format
+          visitReason = [row.visitReason];
+        }
+      } else {
+        visitReason = [];
+      }
+      
+      return {
+        ...row,
+        visitReason
+      };
+    });
+    res.json(processedRows);
   });
 });
 
@@ -155,15 +170,20 @@ app.post('/api/customers', (req, res) => {
   
   const stmt = db.prepare(`INSERT INTO customers (
     name, rawInput, visitReason, needsFinancing, willFinalizePaperwork, 
-    needsAppraisal, wantsWarranty, urgencyLevel, preferredTimeframe, 
+    needsAppraisal, wantsWarranty, preferredTimeframe, 
     intentType, timeAllocation, score, createdAt
-  ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`);
+  ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`);
+
+  // Convert visitReason array to JSON string for storage
+  const visitReasonString = Array.isArray(customer.visitReason) 
+    ? JSON.stringify(customer.visitReason) 
+    : JSON.stringify([customer.visitReason]);
 
   stmt.run([
-    customer.name, customer.rawInput, customer.visitReason,
+    customer.name, customer.rawInput, visitReasonString,
     customer.needsFinancing, customer.willFinalizePaperwork,
     customer.needsAppraisal, customer.wantsWarranty,
-    customer.urgencyLevel, customer.preferredTimeframe,
+    customer.preferredTimeframe,
     customer.intentType, customer.timeAllocation, customer.score,
     new Date().toISOString()
   ], function(err) {
@@ -178,7 +198,25 @@ app.post('/api/customers', (req, res) => {
         res.status(500).json({ error: err.message });
         return;
       }
-      res.json({ id: this.lastID, ...row });
+      // Parse visitReason from JSON string to array, or handle old string format
+      let visitReason;
+      if (row.visitReason) {
+        try {
+          // Try to parse as JSON (new format)
+          visitReason = JSON.parse(row.visitReason);
+        } catch (error) {
+          // If parsing fails, it's the old string format
+          visitReason = [row.visitReason];
+        }
+      } else {
+        visitReason = [];
+      }
+      
+      const processedRow = {
+        ...row,
+        visitReason
+      };
+      res.json({ id: this.lastID, ...processedRow });
     });
   });
 

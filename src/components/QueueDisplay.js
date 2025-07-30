@@ -256,7 +256,12 @@ const QueueDisplay = ({ customers }) => {
                     <div>
                       <div className="text-sm font-medium text-gray-900">{customer.name}</div>
                       <div className="text-sm text-carmax-gray truncate max-w-xs">
-                        {customer.rawInput || `${customer.visitReason?.replace('_', ' ')} visit`}
+                        {customer.rawInput || 
+                          (Array.isArray(customer.visitReason) 
+                            ? `${customer.visitReason.map(reason => reason.replace('_', ' ')).join(', ')} visit`
+                            : 'visit'
+                          )
+                        }
                       </div>
                     </div>
                   </td>

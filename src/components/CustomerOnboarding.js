@@ -6,12 +6,11 @@ const CustomerOnboarding = ({ onCustomerAdded, onProceedToScheduling }) => {
   const [formData, setFormData] = useState({
     name: '',
     rawInput: '',
-    visitReason: '', // Q1: A, B, C, or D
-    needsFinancing: null, // Q2: Only if Q1 = A
-    willFinalizePaperwork: null, // Q3: If Q1 = A or B, or Q2 = Yes
-    needsAppraisal: null, // Q4: Only if Q1 = C
+    visitReason: [], // Q1: Multiple selections allowed
+    needsFinancing: null, // Q2: Only if Q1 includes test_drive
+    willFinalizePaperwork: null, // Q3: If Q1 includes test_drive or purchase, or Q2 = Yes
+    needsAppraisal: null, // Q4: Only if Q1 includes trade_in
     wantsWarranty: null, // Q5: Yes/No
-    urgencyLevel: '',
     preferredTimeframe: ''
   });
 
@@ -27,9 +26,9 @@ const CustomerOnboarding = ({ onCustomerAdded, onProceedToScheduling }) => {
     {
       id: 1,
       title: "Your Visit",
-      question: "What brings you in today?",
+      question: "What brings you in today? (Select all that apply)",
       field: "visitReason",
-      type: "select",
+      type: "multiselect",
       options: [
         { value: "test_drive", label: "I want to test drive a vehicle", description: "Experience the vehicle before making a decision" },
         { value: "purchase", label: "I'm ready to purchase a vehicle", description: "Looking to buy today" },
@@ -44,7 +43,7 @@ const CustomerOnboarding = ({ onCustomerAdded, onProceedToScheduling }) => {
       field: "needsFinancing",
       type: "yesno",
       description: "We offer competitive financing options",
-      conditional: (data) => data.visitReason === "test_drive"
+      conditional: (data) => data.visitReason && data.visitReason.includes("test_drive")
     },
     {
       id: 3,
@@ -54,8 +53,7 @@ const CustomerOnboarding = ({ onCustomerAdded, onProceedToScheduling }) => {
       type: "yesno",
       description: "Completing purchase or financing paperwork",
       conditional: (data) => 
-        data.visitReason === "test_drive" || 
-        data.visitReason === "purchase" || 
+        (data.visitReason && (data.visitReason.includes("test_drive") || data.visitReason.includes("purchase"))) || 
         data.needsFinancing === true
     },
     {
@@ -65,7 +63,7 @@ const CustomerOnboarding = ({ onCustomerAdded, onProceedToScheduling }) => {
       field: "needsAppraisal",
       type: "yesno",
       description: "We can evaluate your current vehicle's trade-in value",
-      conditional: (data) => data.visitReason === "trade_in"
+      conditional: (data) => data.visitReason && data.visitReason.includes("trade_in")
     },
     {
       id: 5,
@@ -77,18 +75,6 @@ const CustomerOnboarding = ({ onCustomerAdded, onProceedToScheduling }) => {
     },
     {
       id: 6,
-      title: "Urgency",
-      question: "How urgent is your need?",
-      field: "urgencyLevel",
-      type: "select",
-      options: [
-        { value: "high", label: "Very urgent", description: "Need immediate assistance today" },
-        { value: "medium", label: "Somewhat urgent", description: "Would like to handle this soon" },
-        { value: "low", label: "Not urgent", description: "Just exploring options" }
-      ]
-    },
-    {
-      id: 7,
       title: "Timeline",
       question: "What's your preferred timeframe?",
       field: "preferredTimeframe",
@@ -111,10 +97,25 @@ const CustomerOnboarding = ({ onCustomerAdded, onProceedToScheduling }) => {
   });
 
   const handleInputChange = (field, value) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }));
+    setFormData(prev => {
+      if (field === "visitReason") {
+        // Handle multiple selections for visit reason
+        const currentReasons = prev[field] || [];
+        const newReasons = currentReasons.includes(value)
+          ? currentReasons.filter(reason => reason !== value) // Remove if already selected
+          : [...currentReasons, value]; // Add if not selected
+        return {
+          ...prev,
+          [field]: newReasons
+        };
+      } else {
+        // Handle single value fields
+        return {
+          ...prev,
+          [field]: value
+        };
+      }
+    });
   };
 
   const handleNext = () => {
@@ -151,24 +152,34 @@ const CustomerOnboarding = ({ onCustomerAdded, onProceedToScheduling }) => {
 
   const canProceed = () => {
     const currentField = filteredSteps[currentStep].field;
-    return formData[currentField] !== null && formData[currentField] !== '';
+    const currentValue = formData[currentField];
+    
+    if (currentField === "visitReason") {
+      // For visit reason, require at least one selection
+      return Array.isArray(currentValue) && currentValue.length > 0;
+    } else {
+      // For other fields, check if not null and not empty string
+      return currentValue !== null && currentValue !== '';
+    }
   };
 
   // Calculate intent type based on branching answers
   const calculateIntentType = (data) => {
     const { visitReason, needsFinancing, willFinalizePaperwork, needsAppraisal, wantsWarranty } = data;
+    const reasons = Array.isArray(visitReason) ? visitReason : [visitReason];
 
-    if (visitReason === "purchase") {
+    // Priority order: purchase > trade-in > test_drive > browsing
+    if (reasons.includes("purchase")) {
       return "purchase";
-    } else if (visitReason === "trade_in") {
+    } else if (reasons.includes("trade_in")) {
       return "trade-in";
-    } else if (visitReason === "test_drive") {
+    } else if (reasons.includes("test_drive")) {
       if (needsFinancing === true || willFinalizePaperwork === true) {
         return "purchase";
       } else {
         return "browsing";
       }
-    } else if (visitReason === "browsing") {
+    } else if (reasons.includes("browsing")) {
       return "browsing";
     }
     
@@ -178,9 +189,13 @@ const CustomerOnboarding = ({ onCustomerAdded, onProceedToScheduling }) => {
   // Calculate time allocation based on answers
   const calculateTimeAllocation = (data) => {
     const { visitReason, needsFinancing, willFinalizePaperwork, needsAppraisal, wantsWarranty } = data;
+    const reasons = Array.isArray(visitReason) ? visitReason : [visitReason];
 
     // Short (15-20 min): Just browsing, no financing, no paperwork
-    if (visitReason === "browsing" && 
+    if (reasons.includes("browsing") && 
+        !reasons.includes("test_drive") && 
+        !reasons.includes("purchase") && 
+        !reasons.includes("trade_in") &&
         needsFinancing !== true && 
         willFinalizePaperwork !== true) {
       return "short";
@@ -274,6 +289,39 @@ const CustomerOnboarding = ({ onCustomerAdded, onProceedToScheduling }) => {
           </div>
         )}
 
+        {currentStepData.type === 'multiselect' && (
+          <div className="space-y-3">
+            {currentStepData.options.map((option) => {
+              const isSelected = formData[currentStepData.field] && formData[currentStepData.field].includes(option.value);
+              return (
+                <button
+                  key={option.value}
+                  onClick={() => handleInputChange(currentStepData.field, option.value)}
+                  className={`w-full p-4 text-left border-2 rounded-carmax transition-all ${
+                    isSelected
+                      ? 'border-carmax-blue bg-carmax-blue bg-opacity-10'
+                      : 'border-gray-200 hover:border-carmax-blue hover:bg-carmax-gray-light'
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="font-medium text-gray-900">{option.label}</div>
+                      {option.description && (
+                        <div className="text-sm text-carmax-gray mt-1">{option.description}</div>
+                      )}
+                    </div>
+                    {isSelected && (
+                      <div className="flex items-center justify-center w-6 h-6 bg-carmax-blue text-white rounded-full">
+                        <CheckIcon className="w-4 h-4" />
+                      </div>
+                    )}
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        )}
+
         {currentStepData.type === 'yesno' && (
           <div className="flex space-x-4">
             <button
@@ -340,12 +388,16 @@ const CustomerOnboarding = ({ onCustomerAdded, onProceedToScheduling }) => {
             {/* Branching Questions Summary */}
             <div className="mt-3 pt-3 border-t border-gray-200">
               <div className="font-medium text-carmax-gray mb-2">Responses:</div>
-              {formData.visitReason && (
+              {formData.visitReason && formData.visitReason.length > 0 && (
                 <div className="flex items-center space-x-2">
                   <span className="text-xs">Visit Reason:</span>
-                  <span className="px-2 py-1 text-xs bg-carmax-blue bg-opacity-10 text-carmax-blue rounded-carmax">
-                    {formData.visitReason.replace('_', ' ')}
-                  </span>
+                  <div className="flex flex-wrap gap-1">
+                    {formData.visitReason.map((reason, index) => (
+                      <span key={index} className="px-2 py-1 text-xs bg-carmax-blue bg-opacity-10 text-carmax-blue rounded-carmax">
+                        {reason.replace('_', ' ')}
+                      </span>
+                    ))}
+                  </div>
                 </div>
               )}
               {formData.needsFinancing !== null && (

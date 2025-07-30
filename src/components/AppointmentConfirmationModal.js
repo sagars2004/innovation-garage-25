@@ -89,7 +89,10 @@ const AppointmentConfirmationModal = ({ isOpen, onClose, appointmentData }) => {
               <div className="flex justify-between items-center">
                 <span className="text-sm text-carmax-gray">Visit Reason</span>
                 <span className="text-sm font-medium text-gray-900 capitalize">
-                  {appointmentData.visitReason?.replace('_', ' ')}
+                  {Array.isArray(appointmentData.visitReason) 
+                    ? appointmentData.visitReason.map(reason => reason.replace('_', ' ')).join(', ')
+                    : appointmentData.visitReason?.replace('_', ' ')
+                  }
                 </span>
               </div>
             </div>

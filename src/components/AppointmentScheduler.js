@@ -205,7 +205,12 @@ const AppointmentScheduler = ({ customer, onAppointmentScheduled, onBack }) => {
             </div>
             <div>
               <h3 className="text-lg font-semibold text-gray-900">{customer.name}</h3>
-              <p className="text-sm text-carmax-gray">{customer.visitReason?.replace('_', ' ')}</p>
+              <p className="text-sm text-carmax-gray">
+                {Array.isArray(customer.visitReason) 
+                  ? customer.visitReason.map(reason => reason.replace('_', ' ')).join(', ')
+                  : customer.visitReason?.replace('_', ' ')
+                }
+              </p>
             </div>
           </div>
           <div className="flex space-x-2">
@@ -226,7 +231,12 @@ const AppointmentScheduler = ({ customer, onAppointmentScheduled, onBack }) => {
           </div>
           <div>
             <span className="font-medium text-carmax-gray">Visit Reason:</span>
-            <span className="ml-2 text-gray-900">{customer.visitReason?.replace('_', ' ')}</span>
+            <span className="ml-2 text-gray-900">
+              {Array.isArray(customer.visitReason) 
+                ? customer.visitReason.map(reason => reason.replace('_', ' ')).join(', ')
+                : customer.visitReason?.replace('_', ' ')
+              }
+            </span>
           </div>
           <div>
             <span className="font-medium text-carmax-gray">Priority:</span>

@@ -1,16 +1,10 @@
-// Scoring weights for different intent types and urgency levels
+// Scoring weights for different intent types and timeframes
 const INTENT_WEIGHTS = {
   "purchase": 1.0,
   "trade-in": 0.8,
   "service": 0.6,
   "browsing": 0.2,
   "other": 0.1
-};
-
-const URGENCY_WEIGHTS = {
-  "high": 1.0,
-  "medium": 0.6,
-  "low": 0.3
 };
 
 const TIMEFRAME_WEIGHTS = {
@@ -76,18 +70,20 @@ export function calculateIntentScore(branchingData) {
  */
 export function calculateIntentType(branchingData) {
   const { visitReason, needsFinancing, willFinalizePaperwork, needsAppraisal, wantsWarranty } = branchingData;
+  const reasons = Array.isArray(visitReason) ? visitReason : [visitReason];
 
-  if (visitReason === "purchase") {
+  // Priority order: purchase > trade-in > test_drive > browsing
+  if (reasons.includes("purchase")) {
     return "purchase";
-  } else if (visitReason === "trade_in") {
+  } else if (reasons.includes("trade_in")) {
     return "trade-in";
-  } else if (visitReason === "test_drive") {
+  } else if (reasons.includes("test_drive")) {
     if (needsFinancing === true || willFinalizePaperwork === true) {
       return "purchase";
     } else {
       return "browsing";
     }
-  } else if (visitReason === "browsing") {
+  } else if (reasons.includes("browsing")) {
     return "browsing";
   }
   
@@ -101,9 +97,13 @@ export function calculateIntentType(branchingData) {
  */
 export function calculateTimeAllocation(branchingData) {
   const { visitReason, needsFinancing, willFinalizePaperwork, needsAppraisal, wantsWarranty } = branchingData;
+  const reasons = Array.isArray(visitReason) ? visitReason : [visitReason];
 
   // Short (15-20 min): Just browsing, no financing, no paperwork
-  if (visitReason === "browsing" && 
+  if (reasons.includes("browsing") && 
+      !reasons.includes("test_drive") && 
+      !reasons.includes("purchase") && 
+      !reasons.includes("trade_in") &&
       needsFinancing !== true && 
       willFinalizePaperwork !== true) {
     return "short";
@@ -121,18 +121,17 @@ export function calculateTimeAllocation(branchingData) {
 }
 
 /**
- * Calculate comprehensive priority score based on intent, urgency, and timeframe
+ * Calculate comprehensive priority score based on intent and timeframe
  * @param {Object} customerData - Complete customer data including branching answers
  * @returns {number} Priority score (0-1)
  */
 export function calculateScore(customerData) {
   const intentType = calculateIntentType(customerData);
   const intentScore = calculateIntentScore(customerData);
-  const urgencyWeight = URGENCY_WEIGHTS[customerData.urgencyLevel] || 0.3;
   const timeframeWeight = TIMEFRAME_WEIGHTS[customerData.preferredTimeframe] || 0.5;
   
-  // Combine intent score with traditional weights
-  const baseScore = intentScore * urgencyWeight;
+  // Combine intent score with timeframe weight
+  const baseScore = intentScore;
   const adjustedScore = baseScore * timeframeWeight;
   
   // Normalize to 0-1 range

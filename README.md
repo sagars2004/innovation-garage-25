@@ -1,10 +1,10 @@
 # iQ SmartQueue - AI-Powered Customer Prioritization
 
-An intelligent customer queue management system for car dealerships that uses AI to prioritize customers based on their intent, urgency, and timeline.
+An intelligent customer queue management system for car dealerships that uses AI to prioritize customers based on their intent and timeline.
 
 ## 🚀 Features
 
-- **AI-Powered Scoring**: Calculates customer priority based on intent, urgency, and timeframe
+- **AI-Powered Scoring**: Calculates customer priority based on intent and timeframe
 - **K-Nearest Neighbors Optimization**: Prevents clustering of similar high-priority customers
 - **Real-time Queue Display**: Live updates with sorting and filtering options
 - **Time-based Decay**: Priority scores adjust based on wait time
@@ -20,17 +20,20 @@ An intelligent customer queue management system for car dealerships that uses AI
 ## 📦 Installation
 
 1. **Clone the repository**
+
    ```bash
    git clone <repository-url>
    cd iq-smartqueue
    ```
 
 2. **Install dependencies**
+
    ```bash
    npm install
    ```
 
 3. **Start the development server**
+
    ```bash
    npm start
    ```
@@ -41,26 +44,23 @@ An intelligent customer queue management system for car dealerships that uses AI
 ## 🎯 How It Works
 
 ### Customer Onboarding Flow
+
 1. **Name Collection**: Customer enters their full name
 2. **Visit Reason**: Free-text description of their visit
 3. **Intent Classification**: Select primary reason (purchase, trade-in, service, etc.)
-4. **Urgency Assessment**: Rate urgency level (high, medium, low)
-5. **Timeline Selection**: Choose preferred timeframe (today, this week, etc.)
+4. **Timeline Selection**: Choose preferred timeframe (today, this week, etc.)
 
 ### Scoring Algorithm
+
 The system calculates priority scores using weighted factors:
 
 - **Intent Weights**:
+
   - Purchase: 1.0
   - Trade-in: 0.8
   - Service: 0.6
   - Browsing: 0.2
   - Other: 0.1
-
-- **Urgency Weights**:
-  - High: 1.0
-  - Medium: 0.6
-  - Low: 0.3
 
 - **Timeframe Weights**:
   - Today: 1.0
@@ -69,7 +69,9 @@ The system calculates priority scores using weighted factors:
   - No rush: 0.2
 
 ### K-Nearest Neighbors Optimization
+
 To prevent clustering of similar high-priority customers:
+
 1. Separates customers into priority tiers
 2. Interleaves high-priority customers with medium-priority ones
 3. Places low-priority customers at the end
@@ -86,22 +88,26 @@ To prevent clustering of similar high-priority customers:
 ## 🔧 Customization
 
 ### Adding New Intent Types
+
 Edit `src/utils/scoring.js`:
+
 ```javascript
 const INTENT_WEIGHTS = {
-  "purchase": 1.0,
+  purchase: 1.0,
   "trade-in": 0.8,
-  "service": 0.6,
-  "browsing": 0.2,
-  "other": 0.1,
-  "your-new-intent": 0.9  // Add new intent here
+  service: 0.6,
+  browsing: 0.2,
+  other: 0.1,
+  "your-new-intent": 0.9, // Add new intent here
 };
 ```
 
 ### Modifying Scoring Weights
+
 Adjust the weights in `src/utils/scoring.js` to match your business priorities.
 
 ### Customizing the UI
+
 The interface uses Tailwind CSS classes and can be easily customized by modifying the component files in `src/components/`.
 
 ## 🚀 Future Enhancements
@@ -131,10 +137,9 @@ async function analyzeCustomerIntent(customerInput) {
     
     Return JSON with:
     - intent_type: "purchase" | "trade-in" | "service" | "browsing" | "other"
-    - urgency_level: "low" | "medium" | "high"
     - preferred_timeframe: "today" | "this week" | "this month" | "no rush"
   `);
-  
+
   return JSON.parse(result.response.text());
 }
 ```
@@ -157,4 +162,4 @@ For support, email support@iqsmartqueue.com or create an issue in the repository
 
 ---
 
-**Built with ❤️ for modern car dealerships** 
+**Built with ❤️ for modern car dealerships**
