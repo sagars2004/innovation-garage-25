@@ -184,12 +184,12 @@ const AppointmentScheduler = ({ customer, onAppointmentScheduled, onBack }) => {
       <div className="mb-8">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-2xl font-bold text-gray-900">Schedule Appointment</h2>
-            <p className="text-gray-600 mt-1">Select a time slot for {customer.name}</p>
+            <h2 className="text-2xl font-bold text-carmax-blue">Schedule Appointment</h2>
+            <p className="text-carmax-gray mt-1">Select a time slot for {customer.name}</p>
           </div>
           <button
             onClick={onBack}
-            className="px-4 py-2 text-gray-600 hover:text-gray-800"
+            className="px-4 py-2 text-carmax-gray hover:text-carmax-blue transition-colors"
           >
             ← Back
           </button>
@@ -197,22 +197,22 @@ const AppointmentScheduler = ({ customer, onAppointmentScheduled, onBack }) => {
       </div>
 
       {/* Customer Summary */}
-      <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
+      <div className="bg-white rounded-carmax shadow-carmax p-6 mb-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
-            <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-              <UserIcon className="w-6 h-6 text-blue-600" />
+            <div className="w-12 h-12 bg-carmax-blue rounded-carmax flex items-center justify-center">
+              <UserIcon className="w-6 h-6 text-white" />
             </div>
             <div>
               <h3 className="text-lg font-semibold text-gray-900">{customer.name}</h3>
-              <p className="text-sm text-gray-600">{customer.visitReason?.replace('_', ' ')}</p>
+              <p className="text-sm text-carmax-gray">{customer.visitReason?.replace('_', ' ')}</p>
             </div>
           </div>
           <div className="flex space-x-2">
-            <span className={`inline-flex px-3 py-1 text-sm font-semibold rounded-full ${getTimeSlotColor(customer.timeAllocation)}`}>
+            <span className={`inline-flex px-3 py-1 text-sm font-semibold rounded-carmax ${getTimeSlotColor(customer.timeAllocation)}`}>
               {customer.timeAllocation?.toUpperCase()} TIME
             </span>
-            <span className="inline-flex px-3 py-1 text-sm font-semibold rounded-full bg-blue-100 text-blue-800">
+            <span className="inline-flex px-3 py-1 text-sm font-semibold rounded-carmax bg-carmax-blue bg-opacity-10 text-carmax-blue">
               {customer.intentType?.replace('-', ' ').toUpperCase()}
             </span>
           </div>
@@ -221,25 +221,25 @@ const AppointmentScheduler = ({ customer, onAppointmentScheduled, onBack }) => {
         {/* Appointment Details */}
         <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
           <div>
-            <span className="font-medium text-gray-700">Duration:</span>
+            <span className="font-medium text-carmax-gray">Duration:</span>
             <span className="ml-2 text-gray-900">{getAppointmentDuration(customer.timeAllocation)} minutes</span>
           </div>
           <div>
-            <span className="font-medium text-gray-700">Visit Reason:</span>
+            <span className="font-medium text-carmax-gray">Visit Reason:</span>
             <span className="ml-2 text-gray-900">{customer.visitReason?.replace('_', ' ')}</span>
           </div>
           <div>
-            <span className="font-medium text-gray-700">Priority:</span>
+            <span className="font-medium text-carmax-gray">Priority:</span>
             <span className="ml-2 text-gray-900">{customer.intentType?.replace('-', ' ')}</span>
           </div>
         </div>
       </div>
 
       {/* Time Slots */}
-      <div className="bg-white rounded-lg shadow-sm">
+      <div className="bg-white rounded-carmax shadow-carmax">
         <div className="px-6 py-4 border-b border-gray-200">
-          <h3 className="text-lg font-medium text-gray-900">Available Time Slots</h3>
-          <p className="text-sm text-gray-500 mt-1">
+          <h3 className="text-lg font-medium text-carmax-blue">Available Time Slots</h3>
+          <p className="text-sm text-carmax-gray mt-1">
             Optimized to avoid clustering similar appointment types
           </p>
         </div>
@@ -251,10 +251,10 @@ const AppointmentScheduler = ({ customer, onAppointmentScheduled, onBack }) => {
                 <button
                   key={index}
                   onClick={() => setSelectedTime(slot)}
-                  className={`p-4 border-2 rounded-lg text-left transition-all ${
+                  className={`p-4 border-2 rounded-carmax text-left transition-all ${
                     selectedTime?.getTime() === slot.getTime()
-                      ? 'border-blue-500 bg-blue-50 ring-2 ring-blue-200'
-                      : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                      ? 'border-carmax-blue bg-carmax-blue bg-opacity-5 ring-2 ring-carmax-blue ring-opacity-20'
+                      : 'border-gray-200 hover:border-carmax-blue hover:bg-carmax-gray-light'
                   }`}
                 >
                   <div className="flex items-center justify-between">
@@ -262,12 +262,12 @@ const AppointmentScheduler = ({ customer, onAppointmentScheduled, onBack }) => {
                       <div className="font-semibold text-gray-900">
                         {formatTime(slot)}
                       </div>
-                      <div className="text-sm text-gray-500 mt-1">
+                      <div className="text-sm text-carmax-gray mt-1">
                         {getAppointmentDuration(customer.timeAllocation)} min appointment
                       </div>
                     </div>
                     {selectedTime?.getTime() === slot.getTime() && (
-                      <CheckIcon className="w-5 h-5 text-blue-600" />
+                      <CheckIcon className="w-5 h-5 text-carmax-blue" />
                     )}
                   </div>
                 </button>
@@ -275,9 +275,9 @@ const AppointmentScheduler = ({ customer, onAppointmentScheduled, onBack }) => {
             </div>
           ) : (
             <div className="text-center py-12">
-              <ClockIcon className="mx-auto h-12 w-12 text-gray-400" />
+              <ClockIcon className="mx-auto h-12 w-12 text-carmax-gray" />
               <h3 className="mt-2 text-sm font-medium text-gray-900">No available slots</h3>
-              <p className="mt-1 text-sm text-gray-500">
+              <p className="mt-1 text-sm text-carmax-gray">
                 All time slots are currently booked for today.
               </p>
             </div>
@@ -290,7 +290,7 @@ const AppointmentScheduler = ({ customer, onAppointmentScheduled, onBack }) => {
         <div className="mt-6 flex justify-center">
           <button
             onClick={handleScheduleAppointment}
-            className="px-8 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2"
+            className="px-8 py-3 bg-carmax-blue text-white rounded-carmax hover:bg-carmax-blue-dark transition-colors flex items-center space-x-2"
           >
             <CalendarIcon className="w-5 h-5" />
             <span>Schedule for {formatTime(selectedTime)}</span>

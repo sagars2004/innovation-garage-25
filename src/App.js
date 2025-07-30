@@ -126,35 +126,40 @@ function App() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-carmax-gray-light">
       {/* Header */}
-      <header className="bg-white shadow-sm border-b">
+      <header className="bg-white shadow-carmax border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4">
             <div className="flex items-center">
-              <h1 className="text-2xl font-bold text-gray-900">Team Queue-Doba: iQ Prototype</h1>
-              <span className="ml-2 px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-full">
-                MVP
-              </span>
+              <div className="flex items-center">
+                <div className="w-10 h-10 bg-carmax-blue rounded-carmax flex items-center justify-center">
+                  <span className="text-white font-bold text-lg">C</span>
+                </div>
+                <div className="ml-3">
+                  <h1 className="text-2xl font-bold text-carmax-blue">CarMax</h1>
+                  <p className="text-sm text-carmax-gray">iQ Queue Management</p>
+                </div>
+              </div>
             </div>
             <nav className="flex space-x-4">
               {/*
               <button
                 onClick={() => navigate('/customer-entry')}
-                className={`px-3 py-2 rounded-md text-sm font-medium ${
+                className={`px-3 py-2 rounded-carmax text-sm font-medium ${
                   location.pathname === '/customer-entry'
-                    ? 'bg-blue-100 text-blue-700'
-                    : 'text-gray-500 hover:text-gray-700'
+                    ? 'bg-carmax-blue text-white'
+                    : 'text-carmax-gray hover:text-carmax-blue'
                 }`}
               >
                 Customer Entry
               </button>
               <button
                 onClick={() => navigate('/queue-display')}
-                className={`px-3 py-2 rounded-md text-sm font-medium ${
+                className={`px-3 py-2 rounded-carmax text-sm font-medium ${
                   location.pathname === '/queue-display'
-                    ? 'bg-blue-100 text-blue-700'
-                    : 'text-gray-500 hover:text-gray-700'
+                    ? 'bg-carmax-blue text-white'
+                    : 'text-carmax-gray hover:text-carmax-blue'
                 }`}
               >
                 Queue Display
@@ -190,11 +195,11 @@ function App() {
 
       {/* Appointments Summary */}
       {appointments.length > 0 && (
-        <div className="fixed bottom-4 right-4 bg-white rounded-lg shadow-lg p-4 max-w-sm">
-          <h3 className="text-sm font-medium text-gray-900 mb-2">Recent Appointments</h3>
+        <div className="fixed bottom-4 right-4 bg-white rounded-carmax shadow-carmax-lg p-4 max-w-sm border border-gray-200">
+          <h3 className="text-sm font-medium text-carmax-blue mb-2">Recent Appointments</h3>
           <div className="space-y-1">
             {appointments.slice(-3).map((appointment, index) => (
-              <div key={index} className="text-xs text-gray-600">
+              <div key={index} className="text-xs text-carmax-gray">
                 {appointment.customerName} - {appointment.appointmentTime.toLocaleTimeString()}
               </div>
             ))}

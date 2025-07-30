@@ -6,18 +6,23 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        primary: {
-          50: '#eff6ff',
-          100: '#dbeafe',
-          200: '#bfdbfe',
-          300: '#93c5fd',
-          400: '#60a5fa',
-          500: '#3b82f6',
-          600: '#2563eb',
-          700: '#1d4ed8',
-          800: '#1e40af',
-          900: '#1e3a8a',
+        'carmax': {
+          'blue': '#0066CC',
+          'blue-dark': '#004499',
+          'orange': '#FF6600',
+          'gray': '#666666',
+          'gray-light': '#F5F5F5',
         }
+      },
+      fontFamily: {
+        'sans': ['Inter', 'Proxima Nova', 'Arial', 'sans-serif'],
+      },
+      borderRadius: {
+        'carmax': '8px',
+      },
+      boxShadow: {
+        'carmax': '0 2px 8px rgba(0, 0, 0, 0.1)',
+        'carmax-lg': '0 4px 16px rgba(0, 0, 0, 0.15)',
       }
     },
   },

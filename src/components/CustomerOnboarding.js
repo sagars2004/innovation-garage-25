@@ -206,10 +206,10 @@ const CustomerOnboarding = ({ onCustomerAdded, onProceedToScheduling }) => {
         <div className="flex items-center justify-between mb-4">
           {filteredSteps.map((step, index) => (
             <div key={step.id} className="flex items-center">
-              <div className={`flex items-center justify-center w-8 h-8 rounded-full border-2 ${
+              <div className={`flex items-center justify-center w-8 h-8 rounded-carmax border-2 ${
                 index <= currentStep 
-                  ? 'bg-blue-600 border-blue-600 text-white' 
-                  : 'bg-white border-gray-300 text-gray-500'
+                  ? 'bg-carmax-blue border-carmax-blue text-white' 
+                  : 'bg-white border-gray-300 text-carmax-gray'
               }`}>
                 {index < currentStep ? (
                   <CheckIcon className="w-5 h-5" />
@@ -218,83 +218,39 @@ const CustomerOnboarding = ({ onCustomerAdded, onProceedToScheduling }) => {
                 )}
               </div>
               {index < filteredSteps.length - 1 && (
-                <div className={`w-12 h-0.5 ${
-                  index < currentStep ? 'bg-blue-600' : 'bg-gray-300'
+                <div className={`w-16 h-0.5 mx-2 ${
+                  index < currentStep ? 'bg-carmax-blue' : 'bg-gray-300'
                 }`} />
               )}
             </div>
           ))}
         </div>
         <div className="text-center">
-          <h2 className="text-lg font-medium text-gray-900">
+          <h2 className="text-lg font-semibold text-carmax-blue">
             Step {currentStep + 1} of {filteredSteps.length}: {currentStepData.title}
           </h2>
         </div>
       </div>
 
       {/* Question Card */}
-      <div className="bg-white rounded-lg shadow-lg p-8 animate-fade-in">
-        <h3 className="text-xl font-semibold text-gray-900 mb-2">
+      <div className="bg-white rounded-carmax shadow-carmax p-8 mb-6">
+        <h3 className="text-xl font-semibold text-gray-900 mb-4">
           {currentStepData.question}
         </h3>
         
         {currentStepData.description && (
-          <p className="text-gray-600 mb-6">{currentStepData.description}</p>
+          <p className="text-carmax-gray mb-6">{currentStepData.description}</p>
         )}
 
         {/* Input Field */}
         {currentStepData.type === 'text' && (
           <input
             type="text"
-            value={formData[currentStepData.field]}
+            value={formData[currentStepData.field] || ''}
             onChange={(e) => handleInputChange(currentStepData.field, e.target.value)}
             placeholder={currentStepData.placeholder}
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            autoFocus
+            className="w-full px-4 py-3 border border-gray-300 rounded-carmax focus:ring-2 focus:ring-carmax-blue focus:border-carmax-blue transition-colors"
           />
-        )}
-
-        {currentStepData.type === 'textarea' && (
-          <textarea
-            value={formData[currentStepData.field]}
-            onChange={(e) => handleInputChange(currentStepData.field, e.target.value)}
-            placeholder={currentStepData.placeholder}
-            rows={4}
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-            autoFocus
-          />
-        )}
-
-        {currentStepData.type === 'yesno' && (
-          <div className="grid grid-cols-2 gap-4">
-            <button
-              onClick={() => handleInputChange(currentStepData.field, true)}
-              className={`p-6 border-2 rounded-lg transition-all ${
-                formData[currentStepData.field] === true
-                  ? 'border-green-500 bg-green-50 ring-2 ring-green-200'
-                  : 'border-gray-300 hover:border-green-400'
-              }`}
-            >
-              <div className="text-center">
-                <div className="text-3xl mb-2">✅</div>
-                <div className="font-semibold text-gray-900">Yes</div>
-              </div>
-            </button>
-            
-            <button
-              onClick={() => handleInputChange(currentStepData.field, false)}
-              className={`p-6 border-2 rounded-lg transition-all ${
-                formData[currentStepData.field] === false
-                  ? 'border-red-500 bg-red-50 ring-2 ring-red-200'
-                  : 'border-gray-300 hover:border-red-400'
-              }`}
-            >
-              <div className="text-center">
-                <div className="text-3xl mb-2">❌</div>
-                <div className="font-semibold text-gray-900">No</div>
-              </div>
-            </button>
-          </div>
         )}
 
         {currentStepData.type === 'select' && (
@@ -303,64 +259,91 @@ const CustomerOnboarding = ({ onCustomerAdded, onProceedToScheduling }) => {
               <button
                 key={option.value}
                 onClick={() => handleInputChange(currentStepData.field, option.value)}
-                className={`w-full p-4 text-left border rounded-lg transition-all ${
+                className={`w-full p-4 text-left border-2 rounded-carmax transition-all ${
                   formData[currentStepData.field] === option.value
-                    ? 'border-blue-500 bg-blue-50 ring-2 ring-blue-200'
-                    : 'border-gray-300 hover:border-gray-400'
+                    ? 'border-carmax-blue bg-carmax-blue bg-opacity-5'
+                    : 'border-gray-200 hover:border-carmax-blue hover:bg-carmax-gray-light'
                 }`}
               >
                 <div className="font-medium text-gray-900">{option.label}</div>
-                <div className="text-sm text-gray-500 mt-1">{option.description}</div>
+                {option.description && (
+                  <div className="text-sm text-carmax-gray mt-1">{option.description}</div>
+                )}
               </button>
             ))}
           </div>
         )}
 
-        {/* Navigation Buttons */}
-        <div className="flex justify-between mt-8">
-          <button
-            onClick={handleBack}
-            disabled={currentStep === 0}
-            className={`px-6 py-2 rounded-lg border flex items-center space-x-2 ${
-              currentStep === 0
-                ? 'border-gray-200 text-gray-400 cursor-not-allowed'
-                : 'border-gray-300 text-gray-700 hover:bg-gray-50'
-            }`}
-          >
-            <ArrowLeftIcon className="w-4 h-4" />
-            <span>Back</span>
-          </button>
-          
-          <button
-            onClick={handleNext}
-            disabled={!canProceed()}
-            className={`px-6 py-2 rounded-lg flex items-center space-x-2 ${
-              canProceed()
-                ? 'bg-blue-600 text-white hover:bg-blue-700'
-                : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-            }`}
-          >
-            <span>{currentStep === filteredSteps.length - 1 ? 'Schedule Appointment' : 'Next'}</span>
-            <ArrowRightIcon className="w-4 h-4" />
-          </button>
-        </div>
+        {currentStepData.type === 'yesno' && (
+          <div className="flex space-x-4">
+            <button
+              onClick={() => handleInputChange(currentStepData.field, true)}
+              className={`flex-1 py-3 px-6 rounded-carmax font-medium transition-colors ${
+                formData[currentStepData.field] === true
+                  ? 'bg-carmax-blue text-white'
+                  : 'bg-gray-100 text-gray-700 hover:bg-carmax-blue hover:text-white'
+              }`}
+            >
+              Yes
+            </button>
+            <button
+              onClick={() => handleInputChange(currentStepData.field, false)}
+              className={`flex-1 py-3 px-6 rounded-carmax font-medium transition-colors ${
+                formData[currentStepData.field] === false
+                  ? 'bg-carmax-blue text-white'
+                  : 'bg-gray-100 text-gray-700 hover:bg-carmax-blue hover:text-white'
+              }`}
+            >
+              No
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* Navigation Buttons */}
+      <div className="flex justify-between items-center">
+        <button
+          onClick={handleBack}
+          disabled={currentStep === 0}
+          className={`px-6 py-2 rounded-carmax flex items-center space-x-2 ${
+            currentStep === 0
+              ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+              : 'bg-gray-100 text-carmax-gray hover:bg-gray-200'
+          }`}
+        >
+          <ArrowLeftIcon className="w-4 h-4" />
+          <span>Back</span>
+        </button>
+        
+        <button
+          onClick={handleNext}
+          disabled={!canProceed()}
+          className={`px-6 py-2 rounded-carmax flex items-center space-x-2 ${
+            canProceed()
+              ? 'bg-carmax-blue text-white hover:bg-carmax-blue-dark'
+              : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+          }`}
+        >
+          <span>{currentStep === filteredSteps.length - 1 ? 'Schedule Appointment' : 'Next'}</span>
+          <ArrowRightIcon className="w-4 h-4" />
+        </button>
       </div>
 
       {/* Intent Preview */}
       {Object.values(formData).some(value => value !== null && value !== '') && (
-        <div className="mt-8 bg-gray-50 rounded-lg p-6">
-          <h4 className="text-sm font-medium text-gray-700 mb-3">Intent Analysis:</h4>
+        <div className="mt-8 bg-carmax-gray-light rounded-carmax p-6">
+          <h4 className="text-sm font-medium text-carmax-gray mb-3">Intent Analysis:</h4>
           <div className="space-y-2 text-sm">
             {formData.name && <div><span className="font-medium">Name:</span> {formData.name}</div>}
             {formData.rawInput && <div><span className="font-medium">Visit Reason:</span> {formData.rawInput}</div>}
             
             {/* Branching Questions Summary */}
             <div className="mt-3 pt-3 border-t border-gray-200">
-              <div className="font-medium text-gray-700 mb-2">Responses:</div>
+              <div className="font-medium text-carmax-gray mb-2">Responses:</div>
               {formData.visitReason && (
                 <div className="flex items-center space-x-2">
                   <span className="text-xs">Visit Reason:</span>
-                  <span className="px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-full">
+                  <span className="px-2 py-1 text-xs bg-carmax-blue bg-opacity-10 text-carmax-blue rounded-carmax">
                     {formData.visitReason.replace('_', ' ')}
                   </span>
                 </div>
@@ -368,7 +351,7 @@ const CustomerOnboarding = ({ onCustomerAdded, onProceedToScheduling }) => {
               {formData.needsFinancing !== null && (
                 <div className="flex items-center space-x-2">
                   <span className="text-xs">Financing:</span>
-                  <span className={`px-2 py-1 text-xs rounded-full ${
+                  <span className={`px-2 py-1 text-xs rounded-carmax ${
                     formData.needsFinancing ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
                   }`}>
                     {formData.needsFinancing ? 'Yes' : 'No'}
@@ -378,7 +361,7 @@ const CustomerOnboarding = ({ onCustomerAdded, onProceedToScheduling }) => {
               {formData.willFinalizePaperwork !== null && (
                 <div className="flex items-center space-x-2">
                   <span className="text-xs">Paperwork:</span>
-                  <span className={`px-2 py-1 text-xs rounded-full ${
+                  <span className={`px-2 py-1 text-xs rounded-carmax ${
                     formData.willFinalizePaperwork ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
                   }`}>
                     {formData.willFinalizePaperwork ? 'Yes' : 'No'}
@@ -388,7 +371,7 @@ const CustomerOnboarding = ({ onCustomerAdded, onProceedToScheduling }) => {
               {formData.needsAppraisal !== null && (
                 <div className="flex items-center space-x-2">
                   <span className="text-xs">Appraisal:</span>
-                  <span className={`px-2 py-1 text-xs rounded-full ${
+                  <span className={`px-2 py-1 text-xs rounded-carmax ${
                     formData.needsAppraisal ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
                   }`}>
                     {formData.needsAppraisal ? 'Yes' : 'No'}
@@ -398,7 +381,7 @@ const CustomerOnboarding = ({ onCustomerAdded, onProceedToScheduling }) => {
               {formData.wantsWarranty !== null && (
                 <div className="flex items-center space-x-2">
                   <span className="text-xs">Warranty:</span>
-                  <span className={`px-2 py-1 text-xs rounded-full ${
+                  <span className={`px-2 py-1 text-xs rounded-carmax ${
                     formData.wantsWarranty ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
                   }`}>
                     {formData.wantsWarranty ? 'Yes' : 'No'}
@@ -410,12 +393,12 @@ const CustomerOnboarding = ({ onCustomerAdded, onProceedToScheduling }) => {
             {/* Calculated Intent and Time Allocation */}
             {Object.values(formData).filter(v => v !== null && v !== '').length >= 3 && (
               <div className="mt-3 pt-3 border-t border-gray-200">
-                <div className="font-medium text-gray-700">Analysis:</div>
+                <div className="font-medium text-carmax-gray">Analysis:</div>
                 <div className="flex space-x-2 mt-1">
-                  <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
+                  <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-carmax bg-carmax-blue bg-opacity-10 text-carmax-blue">
                     {calculateIntentType(formData).replace('-', ' ').toUpperCase()}
                   </span>
-                  <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-purple-100 text-purple-800">
+                  <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-carmax bg-carmax-orange bg-opacity-10 text-carmax-orange">
                     {calculateTimeAllocation(formData).toUpperCase()} TIME
                   </span>
                 </div>

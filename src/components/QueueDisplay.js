@@ -130,34 +130,34 @@ const QueueDisplay = ({ customers }) => {
       {/* Header */}
       <div className="mb-6">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="bg-white rounded-lg p-4 shadow-sm">
+          <div className="bg-white rounded-carmax shadow-carmax p-4">
             <div className="flex items-center">
-              <UserIcon className="w-8 h-8 text-blue-600" />
+              <UserIcon className="w-8 h-8 text-carmax-blue" />
               <div className="ml-3">
-                <p className="text-sm font-medium text-gray-500">Total Customers</p>
-                <p className="text-2xl font-bold text-gray-900">{customers.length}</p>
+                <p className="text-sm font-medium text-carmax-gray">Total Customers</p>
+                <p className="text-2xl font-bold text-carmax-blue">{customers.length}</p>
               </div>
             </div>
           </div>
           
-          <div className="bg-white rounded-lg p-4 shadow-sm">
+          <div className="bg-white rounded-carmax shadow-carmax p-4">
             <div className="flex items-center">
-              <ExclamationTriangleIcon className="w-8 h-8 text-red-600" />
+              <ExclamationTriangleIcon className="w-8 h-8 text-carmax-orange" />
               <div className="ml-3">
-                <p className="text-sm font-medium text-gray-500">High Priority</p>
-                <p className="text-2xl font-bold text-gray-900">
+                <p className="text-sm font-medium text-carmax-gray">High Priority</p>
+                <p className="text-2xl font-bold text-carmax-orange">
                   {customersWithAdjustedScores.filter(c => c.adjustedScore > 0.6).length}
                 </p>
               </div>
             </div>
           </div>
           
-          <div className="bg-white rounded-lg p-4 shadow-sm">
+          <div className="bg-white rounded-carmax shadow-carmax p-4">
             <div className="flex items-center">
-              <ClockIcon className="w-8 h-8 text-yellow-600" />
+              <ClockIcon className="w-8 h-8 text-carmax-gray" />
               <div className="ml-3">
-                <p className="text-sm font-medium text-gray-500">Average Wait</p>
-                <p className="text-2xl font-bold text-gray-900">
+                <p className="text-sm font-medium text-carmax-gray">Average Wait</p>
+                <p className="text-2xl font-bold text-carmax-gray">
                   {(() => {
                     const totalWaitTime = customersWithAdjustedScores.reduce((acc, c) => {
                       const dateObj = c.createdAt instanceof Date ? c.createdAt : new Date(c.createdAt);
@@ -175,14 +175,14 @@ const QueueDisplay = ({ customers }) => {
             </div>
           </div>
           
-          <div className="bg-white rounded-lg p-4 shadow-sm">
+          <div className="bg-white rounded-carmax shadow-carmax p-4">
             <div className="flex items-center">
-              <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                <span className="text-green-600 font-bold">✓</span>
+              <div className="w-8 h-8 bg-carmax-blue rounded-carmax flex items-center justify-center">
+                <span className="text-white text-xs font-bold">K</span>
               </div>
               <div className="ml-3">
-                <p className="text-sm font-medium text-gray-500">Optimized</p>
-                <p className="text-2xl font-bold text-gray-900">K-NN</p>
+                <p className="text-sm font-medium text-carmax-gray">Optimized</p>
+                <p className="text-2xl font-bold text-carmax-blue">K-NN</p>
               </div>
             </div>
           </div>
@@ -190,149 +190,121 @@ const QueueDisplay = ({ customers }) => {
       </div>
 
       {/* Controls */}
-      <div className="bg-white rounded-lg p-4 shadow-sm">
-        <div className="flex flex-col sm:flex-row gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Sort by</label>
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value)}
-              className="border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              <option value="score">Priority Score</option>
-              <option value="time">Wait Time</option>
-              <option value="name">Name</option>
-            </select>
-          </div>
-          
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Filter Priority</label>
-            <select
-              value={filterPriority}
-              onChange={(e) => setFilterPriority(e.target.value)}
-              className="border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              <option value="all">All Priorities</option>
-              <option value="Critical">Critical</option>
-              <option value="High">High</option>
-              <option value="Medium">Medium</option>
-              <option value="Low">Low</option>
-              <option value="Very Low">Very Low</option>
-            </select>
+      <div className="bg-white rounded-carmax shadow-carmax p-4 mb-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
+          <div className="flex items-center space-x-4">
+            <div>
+              <label className="block text-sm font-medium text-carmax-gray mb-1">Sort by</label>
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+                className="border border-gray-300 rounded-carmax px-3 py-2 text-sm focus:ring-2 focus:ring-carmax-blue focus:border-carmax-blue"
+              >
+                <option value="score">Priority Score</option>
+                <option value="time">Wait Time</option>
+                <option value="name">Name</option>
+              </select>
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-carmax-gray mb-1">Filter Priority</label>
+              <select
+                value={filterPriority}
+                onChange={(e) => setFilterPriority(e.target.value)}
+                className="border border-gray-300 rounded-carmax px-3 py-2 text-sm focus:ring-2 focus:ring-carmax-blue focus:border-carmax-blue"
+              >
+                <option value="all">All Priorities</option>
+                <option value="high">High Priority</option>
+                <option value="medium">Medium Priority</option>
+                <option value="low">Low Priority</option>
+              </select>
+            </div>
           </div>
         </div>
       </div>
 
       {/* Queue Table */}
-      <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+      <div className="bg-white rounded-carmax shadow-carmax overflow-hidden">
         <div className="px-6 py-4 border-b border-gray-200">
-          <h3 className="text-lg font-medium text-gray-900">Smart Queue</h3>
-          <p className="text-sm text-gray-500 mt-1">
-            Customers sorted by priority with k-nearest neighbors optimization
-          </p>
+          <h3 className="text-lg font-semibold text-carmax-blue">Smart Queue</h3>
+          <p className="text-sm text-carmax-gray">Customers sorted by priority with k-nearest neighbors optimization</p>
         </div>
         
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+          <table className="w-full">
+            <thead className="bg-carmax-gray-light">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Position
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Customer
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Intent & Time
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Priority
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Score
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Wait Time
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Status
-                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-carmax-gray uppercase tracking-wider">Position</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-carmax-gray uppercase tracking-wider">Customer</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-carmax-gray uppercase tracking-wider">Intent & Time</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-carmax-gray uppercase tracking-wider">Priority</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-carmax-gray uppercase tracking-wider">Score</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-carmax-gray uppercase tracking-wider">Wait Time</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-carmax-gray uppercase tracking-wider">Status</th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="divide-y divide-gray-200">
               {filteredAndSortedCustomers.map((customer, index) => (
-                <tr key={customer.id} className="hover:bg-gray-50">
+                <tr key={customer.id} className="hover:bg-carmax-gray-light transition-colors">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
-                      <span className="text-lg font-bold text-gray-900">#{index + 1}</span>
-                      {customer.adjustedScore > 0.6 && (
-                        <span className="ml-2 px-2 py-1 text-xs bg-red-100 text-red-800 rounded-full">
-                          High Priority
-                        </span>
-                      )}
+                      <span className="text-lg font-bold text-carmax-blue">#{index + 1}</span>
                     </div>
                   </td>
-                  
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  <td className="px-6 py-4">
                     <div>
                       <div className="text-sm font-medium text-gray-900">{customer.name}</div>
-                      <div className="text-sm text-gray-500 max-w-xs truncate">
-                        "{customer.rawInput}"
+                      <div className="text-sm text-carmax-gray truncate max-w-xs">
+                        {customer.rawInput || `${customer.visitReason?.replace('_', ' ')} visit`}
                       </div>
                     </div>
                   </td>
-                  
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center">
-                      <span className="text-2xl mr-2">{getIntentIcon(customer.intentBreakdown.intentType)}</span>
+                    <div className="flex items-center space-x-2">
+                      <span className="text-lg">{getIntentIcon(customer.intentType)}</span>
                       <div>
                         <div className="text-sm font-medium text-gray-900 capitalize">
-                          {customer.intentBreakdown.intentType.replace('-', ' ')}
+                          {customer.intentType?.replace('-', ' ')}
                         </div>
-                        <div className="text-xs text-gray-500">
-                          {getBranchingIndicator(customer)}
-                        </div>
-                        <div className="text-xs text-gray-400">
-                          {customer.intentBreakdown.timeAllocation} time
+                        <div className={`text-xs px-2 py-1 rounded-carmax ${getTimeAllocationColor(customer.timeAllocation)}`}>
+                          {customer.timeAllocation} time
                         </div>
                       </div>
                     </div>
                   </td>
-                  
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="space-y-1">
-                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getPriorityColor(customer.priorityLevel)}`}>
+                    <div className="flex flex-col space-y-1">
+                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-carmax ${getPriorityColor(customer.priorityLevel)}`}>
                         {customer.priorityLevel}
                       </span>
-                      <div>
-                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getTimeAllocationColor(customer.intentBreakdown.timeAllocation)}`}>
-                          {customer.intentBreakdown.timeAllocation.toUpperCase()}
-                        </span>
-                      </div>
+                      <span className="text-xs text-carmax-gray">
+                        {customer.timeAllocation?.toUpperCase()}
+                      </span>
                     </div>
                   </td>
-                  
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div>
-                      <div className="text-sm font-medium text-gray-900">
-                        {(customer.adjustedScore * 100).toFixed(0)}%
-                      </div>
-                      <div className="w-16 bg-gray-200 rounded-full h-2">
+                    <div className="flex items-center">
+                      <div className="flex-1 bg-gray-200 rounded-full h-2 mr-2">
                         <div 
-                          className="bg-blue-600 h-2 rounded-full" 
-                          style={{ width: `${customer.adjustedScore * 100}%` }}
+                          className="bg-carmax-blue h-2 rounded-full transition-all duration-300"
+                          style={{ width: `${Math.round(customer.adjustedScore * 100)}%` }}
                         ></div>
                       </div>
+                      <span className="text-sm font-medium text-carmax-blue">
+                        {Math.round(customer.adjustedScore * 100)}%
+                      </span>
                     </div>
                   </td>
-                  
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-carmax-gray">
                     {formatTimeAgo(customer.createdAt)}
                   </td>
-                  
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">
-                      Waiting
+                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-carmax ${
+                      customer.status === 'waiting' 
+                        ? 'bg-yellow-100 text-yellow-800' 
+                        : 'bg-green-100 text-green-800'
+                    }`}>
+                      {customer.status}
                     </span>
                   </td>
                 </tr>
