@@ -95,12 +95,24 @@ const QueueDisplay = ({ customers }) => {
     }
   };
 
+  const getTimeAllocationColor = (timeAllocation) => {
+    switch (timeAllocation) {
+      case 'short':
+        return 'text-green-600 bg-green-50';
+      case 'standard':
+        return 'text-blue-600 bg-blue-50';
+      case 'extended':
+        return 'text-purple-600 bg-purple-50';
+      default:
+        return 'text-gray-600 bg-gray-50';
+    }
+  };
+
   const getBranchingIndicator = (customer) => {
     const indicators = [];
     if (customer.needsFinancing) indicators.push('💰');
-    if (customer.wantsTestDrive) indicators.push('🚗');
-    if (customer.wantsMultipleCars) indicators.push('🔄');
-    if (customer.hasTradeIn) indicators.push('📋');
+    if (customer.willFinalizePaperwork) indicators.push('📄');
+    if (customer.wantsWarranty) indicators.push('🛡️');
     if (customer.needsAppraisal) indicators.push('📊');
     return indicators.join(' ');
   };
@@ -213,7 +225,7 @@ const QueueDisplay = ({ customers }) => {
                   Customer
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Intent & Indicators
+                  Intent & Time
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Priority
@@ -263,16 +275,23 @@ const QueueDisplay = ({ customers }) => {
                           {getBranchingIndicator(customer)}
                         </div>
                         <div className="text-xs text-gray-400">
-                          Confidence: {customer.intentBreakdown.confidence}
+                          {customer.intentBreakdown.timeAllocation} time
                         </div>
                       </div>
                     </div>
                   </td>
                   
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getPriorityColor(customer.priorityLevel)}`}>
-                      {customer.priorityLevel}
-                    </span>
+                    <div className="space-y-1">
+                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getPriorityColor(customer.priorityLevel)}`}>
+                        {customer.priorityLevel}
+                      </span>
+                      <div>
+                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getTimeAllocationColor(customer.intentBreakdown.timeAllocation)}`}>
+                          {customer.intentBreakdown.timeAllocation.toUpperCase()}
+                        </span>
+                      </div>
+                    </div>
                   </td>
                   
                   <td className="px-6 py-4 whitespace-nowrap">

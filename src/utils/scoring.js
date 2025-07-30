@@ -1,4 +1,12 @@
-// Scoring weights for different urgency levels and timeframes
+// Scoring weights for different intent types and urgency levels
+const INTENT_WEIGHTS = {
+  "purchase": 1.0,
+  "trade-in": 0.8,
+  "service": 0.6,
+  "browsing": 0.2,
+  "other": 0.1
+};
+
 const URGENCY_WEIGHTS = {
   "high": 1.0,
   "medium": 0.6,
@@ -16,18 +24,16 @@ const TIMEFRAME_WEIGHTS = {
 const BRANCHING_WEIGHTS = {
   // High-intent indicators (strong purchase signals)
   needsFinancing: 0.25,
-  wantsTestDrive: 0.20,
-  wantsMultipleCars: 0.20,
+  willFinalizePaperwork: 0.20,
+  wantsWarranty: 0.15,
   
   // Medium-intent indicators (moderate purchase signals)
-  hasTradeIn: 0.15,
   needsAppraisal: 0.10,
   
   // Low-intent indicators (weak or negative signals)
   noFinancing: -0.10,
-  noTestDrive: -0.15,
-  noMultipleCars: -0.10,
-  noTradeIn: -0.05,
+  noPaperwork: -0.15,
+  noWarranty: -0.05,
   noAppraisal: -0.05
 };
 
@@ -38,27 +44,25 @@ const BRANCHING_WEIGHTS = {
  */
 export function calculateIntentScore(branchingData) {
   const {
-    needsAppraisal,
+    visitReason,
     needsFinancing,
-    wantsTestDrive,
-    wantsMultipleCars,
-    hasTradeIn
+    willFinalizePaperwork,
+    needsAppraisal,
+    wantsWarranty
   } = branchingData;
 
   let intentScore = 0.5; // Base score
 
   // Add positive weights for "Yes" answers
   if (needsFinancing === true) intentScore += BRANCHING_WEIGHTS.needsFinancing;
-  if (wantsTestDrive === true) intentScore += BRANCHING_WEIGHTS.wantsTestDrive;
-  if (wantsMultipleCars === true) intentScore += BRANCHING_WEIGHTS.wantsMultipleCars;
-  if (hasTradeIn === true) intentScore += BRANCHING_WEIGHTS.hasTradeIn;
+  if (willFinalizePaperwork === true) intentScore += BRANCHING_WEIGHTS.willFinalizePaperwork;
+  if (wantsWarranty === true) intentScore += BRANCHING_WEIGHTS.wantsWarranty;
   if (needsAppraisal === true) intentScore += BRANCHING_WEIGHTS.needsAppraisal;
 
   // Subtract weights for "No" answers
   if (needsFinancing === false) intentScore += BRANCHING_WEIGHTS.noFinancing;
-  if (wantsTestDrive === false) intentScore += BRANCHING_WEIGHTS.noTestDrive;
-  if (wantsMultipleCars === false) intentScore += BRANCHING_WEIGHTS.noMultipleCars;
-  if (hasTradeIn === false) intentScore += BRANCHING_WEIGHTS.noTradeIn;
+  if (willFinalizePaperwork === false) intentScore += BRANCHING_WEIGHTS.noPaperwork;
+  if (wantsWarranty === false) intentScore += BRANCHING_WEIGHTS.noWarranty;
   if (needsAppraisal === false) intentScore += BRANCHING_WEIGHTS.noAppraisal;
 
   // Normalize to 0-1 range
@@ -71,50 +75,49 @@ export function calculateIntentScore(branchingData) {
  * @returns {string} Intent type
  */
 export function calculateIntentType(branchingData) {
-  const {
-    needsAppraisal,
-    needsFinancing,
-    wantsTestDrive,
-    wantsMultipleCars,
-    hasTradeIn
-  } = branchingData;
+  const { visitReason, needsFinancing, willFinalizePaperwork, needsAppraisal, wantsWarranty } = branchingData;
 
-  // Count high-intent indicators
-  const highIntentCount = [
-    needsFinancing === true,
-    wantsTestDrive === true,
-    wantsMultipleCars === true
-  ].filter(Boolean).length;
-
-  // Count medium-intent indicators
-  const mediumIntentCount = [
-    hasTradeIn === true,
-    needsAppraisal === true
-  ].filter(Boolean).length;
-
-  // Count low-intent indicators
-  const lowIntentCount = [
-    needsAppraisal === false,
-    needsFinancing === false,
-    wantsTestDrive === false,
-    wantsMultipleCars === false,
-    hasTradeIn === false
-  ].filter(Boolean).length;
-
-  // Determine intent type based on answers
-  if (highIntentCount >= 2) {
+  if (visitReason === "purchase") {
     return "purchase";
-  } else if (highIntentCount === 1 && mediumIntentCount >= 1) {
-    return "purchase";
-  } else if (hasTradeIn === true && needsAppraisal === true) {
+  } else if (visitReason === "trade_in") {
     return "trade-in";
-  } else if (mediumIntentCount >= 2) {
-    return "service";
-  } else if (lowIntentCount >= 3) {
+  } else if (visitReason === "test_drive") {
+    if (needsFinancing === true || willFinalizePaperwork === true) {
+      return "purchase";
+    } else {
+      return "browsing";
+    }
+  } else if (visitReason === "browsing") {
     return "browsing";
-  } else {
-    return "other";
   }
+  
+  return "other";
+}
+
+/**
+ * Calculate time allocation based on answers
+ * @param {Object} branchingData - Object containing yes/no answers
+ * @returns {string} Time allocation (short, standard, extended)
+ */
+export function calculateTimeAllocation(branchingData) {
+  const { visitReason, needsFinancing, willFinalizePaperwork, needsAppraisal, wantsWarranty } = branchingData;
+
+  // Short (15-20 min): Just browsing, no financing, no paperwork
+  if (visitReason === "browsing" && 
+      needsFinancing !== true && 
+      willFinalizePaperwork !== true) {
+    return "short";
+  }
+
+  // Extended (60-90+ min): Financing, paperwork, warranty discussions
+  if (needsFinancing === true || 
+      willFinalizePaperwork === true || 
+      wantsWarranty === true) {
+    return "extended";
+  }
+
+  // Standard (30-45 min): Test drive or appraisal only
+  return "standard";
 }
 
 /**
@@ -123,6 +126,7 @@ export function calculateIntentType(branchingData) {
  * @returns {number} Priority score (0-1)
  */
 export function calculateScore(customerData) {
+  const intentType = calculateIntentType(customerData);
   const intentScore = calculateIntentScore(customerData);
   const urgencyWeight = URGENCY_WEIGHTS[customerData.urgencyLevel] || 0.3;
   const timeframeWeight = TIMEFRAME_WEIGHTS[customerData.preferredTimeframe] || 0.5;
@@ -206,26 +210,26 @@ export function getAdjustedScore(baseScore, createdAt) {
 export function getIntentBreakdown(customerData) {
   const intentScore = calculateIntentScore(customerData);
   const intentType = calculateIntentType(customerData);
+  const timeAllocation = calculateTimeAllocation(customerData);
   
   return {
     intentScore,
     intentType,
+    timeAllocation,
     confidence: intentScore > 0.7 ? "High" : intentScore > 0.4 ? "Medium" : "Low",
     indicators: {
       highIntent: [
         customerData.needsFinancing && "Needs Financing",
-        customerData.wantsTestDrive && "Wants Test Drive",
-        customerData.wantsMultipleCars && "Wants Multiple Cars"
+        customerData.willFinalizePaperwork && "Will Finalize Paperwork",
+        customerData.wantsWarranty && "Wants Warranty"
       ].filter(Boolean),
       mediumIntent: [
-        customerData.hasTradeIn && "Has Trade-In",
         customerData.needsAppraisal && "Needs Appraisal"
       ].filter(Boolean),
       lowIntent: [
         !customerData.needsFinancing && "No Financing Needed",
-        !customerData.wantsTestDrive && "No Test Drive",
-        !customerData.wantsMultipleCars && "Single Vehicle Interest",
-        !customerData.hasTradeIn && "No Trade-In",
+        !customerData.willFinalizePaperwork && "No Paperwork",
+        !customerData.wantsWarranty && "No Warranty Interest",
         !customerData.needsAppraisal && "No Appraisal Needed"
       ].filter(Boolean)
     }

@@ -6,11 +6,11 @@ const CustomerOnboarding = ({ onCustomerAdded, onProceedToScheduling }) => {
   const [formData, setFormData] = useState({
     name: '',
     rawInput: '',
-    needsAppraisal: null,
-    needsFinancing: null,
-    wantsTestDrive: null,
-    wantsMultipleCars: null,
-    hasTradeIn: null,
+    visitReason: '', // Q1: A, B, C, or D
+    needsFinancing: null, // Q2: Only if Q1 = A
+    willFinalizePaperwork: null, // Q3: If Q1 = A or B, or Q2 = Yes
+    needsAppraisal: null, // Q4: Only if Q1 = C
+    wantsWarranty: null, // Q5: Yes/No
     urgencyLevel: '',
     preferredTimeframe: ''
   });
@@ -28,52 +28,55 @@ const CustomerOnboarding = ({ onCustomerAdded, onProceedToScheduling }) => {
       id: 1,
       title: "Your Visit",
       question: "What brings you in today?",
-      field: "rawInput",
-      type: "textarea",
-      placeholder: "Tell us about your visit (e.g., 'I'm looking to buy a new SUV today')"
+      field: "visitReason",
+      type: "select",
+      options: [
+        { value: "test_drive", label: "I want to test drive a vehicle", description: "Experience the vehicle before making a decision" },
+        { value: "purchase", label: "I'm ready to purchase a vehicle", description: "Looking to buy today" },
+        { value: "trade_in", label: "I want to sell or trade in my vehicle", description: "Selling or trading in your current vehicle" },
+        { value: "browsing", label: "I'm just browsing", description: "Just looking around today" }
+      ]
     },
     {
       id: 2,
-      title: "Appraisal",
-      question: "Do you need an appraisal for your current vehicle?",
-      field: "needsAppraisal",
+      title: "Financing",
+      question: "Are you interested in financing options?",
+      field: "needsFinancing",
       type: "yesno",
-      description: "We can evaluate your current vehicle's trade-in value"
+      description: "We offer competitive financing options",
+      conditional: (data) => data.visitReason === "test_drive"
     },
     {
       id: 3,
-      title: "Financing",
-      question: "Do you need financing for your purchase?",
-      field: "needsFinancing",
+      title: "Paperwork",
+      question: "Will you be finalizing paperwork during this visit?",
+      field: "willFinalizePaperwork",
       type: "yesno",
-      description: "We offer competitive financing options"
+      description: "Completing purchase or financing paperwork",
+      conditional: (data) => 
+        data.visitReason === "test_drive" || 
+        data.visitReason === "purchase" || 
+        data.needsFinancing === true
     },
     {
       id: 4,
-      title: "Test Drive",
-      question: "Would you like to test drive a vehicle today?",
-      field: "wantsTestDrive",
+      title: "Appraisal",
+      question: "Do you need a vehicle appraisal?",
+      field: "needsAppraisal",
       type: "yesno",
-      description: "Experience the vehicle before making a decision"
+      description: "We can evaluate your current vehicle's trade-in value",
+      conditional: (data) => data.visitReason === "trade_in"
     },
     {
       id: 5,
-      title: "Multiple Vehicles",
-      question: "Do you want to test drive multiple vehicles?",
-      field: "wantsMultipleCars",
+      title: "Warranty",
+      question: "Are you interested in adding a warranty or protection plan?",
+      field: "wantsWarranty",
       type: "yesno",
-      description: "Compare different models and options"
+      description: "Protect your investment with extended coverage"
     },
     {
       id: 6,
-      title: "Trade-In",
-      question: "Do you have a vehicle to trade in?",
-      field: "hasTradeIn",
-      type: "yesno",
-      description: "We can help you with the trade-in process"
-    },
-    {
-      id: 7,
       title: "Urgency",
       question: "How urgent is your need?",
       field: "urgencyLevel",
@@ -85,7 +88,7 @@ const CustomerOnboarding = ({ onCustomerAdded, onProceedToScheduling }) => {
       ]
     },
     {
-      id: 8,
+      id: 7,
       title: "Timeline",
       question: "What's your preferred timeframe?",
       field: "preferredTimeframe",
@@ -99,6 +102,14 @@ const CustomerOnboarding = ({ onCustomerAdded, onProceedToScheduling }) => {
     }
   ];
 
+  // Filter steps based on conditional logic
+  const filteredSteps = steps.filter((step, index) => {
+    if (step.conditional) {
+      return step.conditional(formData);
+    }
+    return true;
+  });
+
   const handleInputChange = (field, value) => {
     setFormData(prev => ({
       ...prev,
@@ -107,16 +118,18 @@ const CustomerOnboarding = ({ onCustomerAdded, onProceedToScheduling }) => {
   };
 
   const handleNext = () => {
-    if (currentStep < steps.length - 1) {
+    if (currentStep < filteredSteps.length - 1) {
       setCurrentStep(currentStep + 1);
     } else {
-      // Calculate intent type based on answers
+      // Calculate intent type and time allocation based on answers
       const intentType = calculateIntentType(formData);
+      const timeAllocation = calculateTimeAllocation(formData);
       
       // Create customer data
       const customerData = {
         ...formData,
         intentType,
+        timeAllocation,
         id: Date.now(),
         score: 0 // Will be calculated in the parent component
       };
@@ -136,70 +149,61 @@ const CustomerOnboarding = ({ onCustomerAdded, onProceedToScheduling }) => {
   };
 
   const canProceed = () => {
-    const currentField = steps[currentStep].field;
+    const currentField = filteredSteps[currentStep].field;
     return formData[currentField] !== null && formData[currentField] !== '';
   };
 
   // Calculate intent type based on branching answers
   const calculateIntentType = (data) => {
-    const {
-      needsAppraisal,
-      needsFinancing,
-      wantsTestDrive,
-      wantsMultipleCars,
-      hasTradeIn
-    } = data;
+    const { visitReason, needsFinancing, willFinalizePaperwork, needsAppraisal, wantsWarranty } = data;
 
-    // High-intent purchase indicators
-    const highIntentIndicators = [
-      needsFinancing === true,
-      wantsTestDrive === true,
-      wantsMultipleCars === true
-    ];
-
-    // Medium-intent indicators
-    const mediumIntentIndicators = [
-      hasTradeIn === true,
-      needsAppraisal === true
-    ];
-
-    // Low-intent indicators
-    const lowIntentIndicators = [
-      needsAppraisal === false,
-      needsFinancing === false,
-      wantsTestDrive === false,
-      wantsMultipleCars === false,
-      hasTradeIn === false
-    ];
-
-    const highIntentCount = highIntentIndicators.filter(Boolean).length;
-    const mediumIntentCount = mediumIntentIndicators.filter(Boolean).length;
-    const lowIntentCount = lowIntentIndicators.filter(Boolean).length;
-
-    // Determine intent type based on answers
-    if (highIntentCount >= 2) {
+    if (visitReason === "purchase") {
       return "purchase";
-    } else if (highIntentCount === 1 && mediumIntentCount >= 1) {
-      return "purchase";
-    } else if (hasTradeIn === true && needsAppraisal === true) {
+    } else if (visitReason === "trade_in") {
       return "trade-in";
-    } else if (mediumIntentCount >= 2) {
-      return "service";
-    } else if (lowIntentCount >= 3) {
+    } else if (visitReason === "test_drive") {
+      if (needsFinancing === true || willFinalizePaperwork === true) {
+        return "purchase";
+      } else {
+        return "browsing";
+      }
+    } else if (visitReason === "browsing") {
       return "browsing";
-    } else {
-      return "other";
     }
+    
+    return "other";
   };
 
-  const currentStepData = steps[currentStep];
+  // Calculate time allocation based on answers
+  const calculateTimeAllocation = (data) => {
+    const { visitReason, needsFinancing, willFinalizePaperwork, needsAppraisal, wantsWarranty } = data;
+
+    // Short (15-20 min): Just browsing, no financing, no paperwork
+    if (visitReason === "browsing" && 
+        needsFinancing !== true && 
+        willFinalizePaperwork !== true) {
+      return "short";
+    }
+
+    // Extended (60-90+ min): Financing, paperwork, warranty discussions
+    if (needsFinancing === true || 
+        willFinalizePaperwork === true || 
+        wantsWarranty === true) {
+      return "extended";
+    }
+
+    // Standard (30-45 min): Test drive or appraisal only
+    return "standard";
+  };
+
+  const currentStepData = filteredSteps[currentStep];
 
   return (
     <div className="max-w-2xl mx-auto">
       {/* Progress Bar */}
       <div className="mb-8">
         <div className="flex items-center justify-between mb-4">
-          {steps.map((step, index) => (
+          {filteredSteps.map((step, index) => (
             <div key={step.id} className="flex items-center">
               <div className={`flex items-center justify-center w-8 h-8 rounded-full border-2 ${
                 index <= currentStep 
@@ -212,7 +216,7 @@ const CustomerOnboarding = ({ onCustomerAdded, onProceedToScheduling }) => {
                   <span className="text-sm font-medium">{index + 1}</span>
                 )}
               </div>
-              {index < steps.length - 1 && (
+              {index < filteredSteps.length - 1 && (
                 <div className={`w-12 h-0.5 ${
                   index < currentStep ? 'bg-blue-600' : 'bg-gray-300'
                 }`} />
@@ -222,7 +226,7 @@ const CustomerOnboarding = ({ onCustomerAdded, onProceedToScheduling }) => {
         </div>
         <div className="text-center">
           <h2 className="text-lg font-medium text-gray-900">
-            Step {currentStep + 1} of {steps.length}: {currentStepData.title}
+            Step {currentStep + 1} of {filteredSteps.length}: {currentStepData.title}
           </h2>
         </div>
       </div>
@@ -335,7 +339,7 @@ const CustomerOnboarding = ({ onCustomerAdded, onProceedToScheduling }) => {
                 : 'bg-gray-200 text-gray-400 cursor-not-allowed'
             }`}
           >
-            <span>{currentStep === steps.length - 1 ? 'Schedule Appointment' : 'Next'}</span>
+            <span>{currentStep === filteredSteps.length - 1 ? 'Schedule Appointment' : 'Next'}</span>
             <ArrowRightIcon className="w-4 h-4" />
           </button>
         </div>
@@ -352,13 +356,11 @@ const CustomerOnboarding = ({ onCustomerAdded, onProceedToScheduling }) => {
             {/* Branching Questions Summary */}
             <div className="mt-3 pt-3 border-t border-gray-200">
               <div className="font-medium text-gray-700 mb-2">Responses:</div>
-              {formData.needsAppraisal !== null && (
+              {formData.visitReason && (
                 <div className="flex items-center space-x-2">
-                  <span className="text-xs">Appraisal:</span>
-                  <span className={`px-2 py-1 text-xs rounded-full ${
-                    formData.needsAppraisal ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                  }`}>
-                    {formData.needsAppraisal ? 'Yes' : 'No'}
+                  <span className="text-xs">Visit Reason:</span>
+                  <span className="px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-full">
+                    {formData.visitReason.replace('_', ' ')}
                   </span>
                 </div>
               )}
@@ -372,45 +374,50 @@ const CustomerOnboarding = ({ onCustomerAdded, onProceedToScheduling }) => {
                   </span>
                 </div>
               )}
-              {formData.wantsTestDrive !== null && (
+              {formData.willFinalizePaperwork !== null && (
                 <div className="flex items-center space-x-2">
-                  <span className="text-xs">Test Drive:</span>
+                  <span className="text-xs">Paperwork:</span>
                   <span className={`px-2 py-1 text-xs rounded-full ${
-                    formData.wantsTestDrive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                    formData.willFinalizePaperwork ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
                   }`}>
-                    {formData.wantsTestDrive ? 'Yes' : 'No'}
+                    {formData.willFinalizePaperwork ? 'Yes' : 'No'}
                   </span>
                 </div>
               )}
-              {formData.wantsMultipleCars !== null && (
+              {formData.needsAppraisal !== null && (
                 <div className="flex items-center space-x-2">
-                  <span className="text-xs">Multiple Cars:</span>
+                  <span className="text-xs">Appraisal:</span>
                   <span className={`px-2 py-1 text-xs rounded-full ${
-                    formData.wantsMultipleCars ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                    formData.needsAppraisal ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
                   }`}>
-                    {formData.wantsMultipleCars ? 'Yes' : 'No'}
+                    {formData.needsAppraisal ? 'Yes' : 'No'}
                   </span>
                 </div>
               )}
-              {formData.hasTradeIn !== null && (
+              {formData.wantsWarranty !== null && (
                 <div className="flex items-center space-x-2">
-                  <span className="text-xs">Trade-In:</span>
+                  <span className="text-xs">Warranty:</span>
                   <span className={`px-2 py-1 text-xs rounded-full ${
-                    formData.hasTradeIn ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                    formData.wantsWarranty ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
                   }`}>
-                    {formData.hasTradeIn ? 'Yes' : 'No'}
+                    {formData.wantsWarranty ? 'Yes' : 'No'}
                   </span>
                 </div>
               )}
             </div>
             
-            {/* Calculated Intent */}
+            {/* Calculated Intent and Time Allocation */}
             {Object.values(formData).filter(v => v !== null && v !== '').length >= 3 && (
               <div className="mt-3 pt-3 border-t border-gray-200">
-                <div className="font-medium text-gray-700">Calculated Intent:</div>
-                <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
-                  {calculateIntentType(formData).replace('-', ' ').toUpperCase()}
-                </span>
+                <div className="font-medium text-gray-700">Analysis:</div>
+                <div className="flex space-x-2 mt-1">
+                  <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
+                    {calculateIntentType(formData).replace('-', ' ').toUpperCase()}
+                  </span>
+                  <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-purple-100 text-purple-800">
+                    {calculateTimeAllocation(formData).toUpperCase()} TIME
+                  </span>
+                </div>
               </div>
             )}
           </div>
