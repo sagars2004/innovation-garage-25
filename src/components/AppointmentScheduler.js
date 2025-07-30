@@ -5,6 +5,42 @@ const AppointmentScheduler = ({ customer, onAppointmentScheduled, onBack }) => {
   const [selectedTime, setSelectedTime] = useState(null);
   const [existingAppointments, setExistingAppointments] = useState([]);
 
+  // Load sample existing appointments
+  useEffect(() => {
+    const sampleAppointments = [
+      {
+        customerName: "John Smith",
+        time: new Date(new Date().setHours(10, 0, 0, 0)),
+        duration: 90,
+        timeAllocation: "extended"
+      },
+      {
+        customerName: "Sarah Johnson",
+        time: new Date(new Date().setHours(11, 30, 0, 0)),
+        duration: 45,
+        timeAllocation: "standard"
+      },
+      {
+        customerName: "Mike Davis",
+        time: new Date(new Date().setHours(14, 0, 0, 0)),
+        duration: 20,
+        timeAllocation: "short"
+      },
+      {
+        customerName: "Lisa Chen",
+        time: new Date(new Date().setHours(15, 30, 0, 0)),
+        duration: 90,
+        timeAllocation: "extended"
+      }
+    ];
+    setExistingAppointments(sampleAppointments);
+  }, []);
+
+  // Guard against null/undefined customer (after all hooks)
+  if (!customer) {
+    return null;
+  }
+
   // Generate today's time slots
   const generateTimeSlots = () => {
     const slots = [];
@@ -140,37 +176,6 @@ const AppointmentScheduler = ({ customer, onAppointmentScheduled, onBack }) => {
     }
   };
 
-  // Load sample existing appointments
-  useEffect(() => {
-    const sampleAppointments = [
-      {
-        customerName: "John Smith",
-        time: new Date(new Date().setHours(10, 0, 0, 0)),
-        duration: 90,
-        timeAllocation: "extended"
-      },
-      {
-        customerName: "Sarah Johnson",
-        time: new Date(new Date().setHours(11, 30, 0, 0)),
-        duration: 45,
-        timeAllocation: "standard"
-      },
-      {
-        customerName: "Mike Davis",
-        time: new Date(new Date().setHours(14, 0, 0, 0)),
-        duration: 20,
-        timeAllocation: "short"
-      },
-      {
-        customerName: "Lisa Chen",
-        time: new Date(new Date().setHours(15, 30, 0, 0)),
-        duration: 90,
-        timeAllocation: "extended"
-      }
-    ];
-    setExistingAppointments(sampleAppointments);
-  }, []);
-
   const adjustedTimeSlots = getAdjustedTimeSlots();
 
   return (
@@ -292,24 +297,6 @@ const AppointmentScheduler = ({ customer, onAppointmentScheduled, onBack }) => {
           </button>
         </div>
       )}
-
-      {/* Existing Appointments Preview */}
-      <div className="mt-8 bg-gray-50 rounded-lg p-6">
-        <h4 className="text-sm font-medium text-gray-700 mb-3">Today's Schedule</h4>
-        <div className="space-y-2">
-          {existingAppointments.map((appointment, index) => (
-            <div key={index} className="flex items-center justify-between text-sm">
-              <div className="flex items-center space-x-3">
-                <span className="text-gray-500">{formatTime(appointment.time)}</span>
-                <span className="font-medium text-gray-900">{appointment.customerName}</span>
-              </div>
-              <span className={`px-2 py-1 text-xs rounded-full ${getTimeSlotColor(appointment.timeAllocation)}`}>
-                {appointment.duration}min
-              </span>
-            </div>
-          ))}
-        </div>
-      </div>
     </div>
   );
 };

@@ -3,150 +3,118 @@ import CustomerOnboarding from './components/CustomerOnboarding';
 import QueueDisplay from './components/QueueDisplay';
 import AppointmentScheduler from './components/AppointmentScheduler';
 import { calculateScore } from './utils/scoring';
+import { Routes, Route, useLocation, useNavigate, Navigate } from 'react-router-dom';
+
+const API_BASE_URL = 'http://localhost:3001/api';
 
 function App() {
   const [customers, setCustomers] = useState([]);
-  const [currentView, setCurrentView] = useState('onboarding'); // 'onboarding', 'queue', or 'scheduling'
   const [currentCustomer, setCurrentCustomer] = useState(null);
   const [appointments, setAppointments] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const location = useLocation();
+  const navigate = useNavigate();
 
-  // Load sample data on component mount
-  useEffect(() => {
-    const sampleCustomers = [
-      {
-        id: 1,
-        name: "John Smith",
-        rawInput: "I'm looking to buy a new SUV today and wanted to check out options",
-        visitReason: "purchase",
-        needsFinancing: true,
-        willFinalizePaperwork: true,
-        needsAppraisal: null,
-        wantsWarranty: true,
-        urgencyLevel: "high",
-        preferredTimeframe: "today",
-        intentType: "purchase",
-        timeAllocation: "extended",
-        score: calculateScore({
-          visitReason: "purchase",
-          needsFinancing: true,
-          willFinalizePaperwork: true,
-          wantsWarranty: true,
-          urgencyLevel: "high",
-          preferredTimeframe: "today"
-        }),
-        createdAt: new Date(Date.now() - 1000 * 60 * 30), // 30 minutes ago
-        status: "waiting"
-      },
-      {
-        id: 2,
-        name: "Sarah Johnson",
-        rawInput: "I need to get my oil changed and brakes checked",
-        visitReason: "browsing",
-        needsFinancing: null,
-        willFinalizePaperwork: null,
-        needsAppraisal: null,
-        wantsWarranty: false,
-        urgencyLevel: "medium",
-        preferredTimeframe: "this week",
-        intentType: "browsing",
-        timeAllocation: "short",
-        score: calculateScore({
-          visitReason: "browsing",
-          wantsWarranty: false,
-          urgencyLevel: "medium",
-          preferredTimeframe: "this week"
-        }),
-        createdAt: new Date(Date.now() - 1000 * 60 * 15), // 15 minutes ago
-        status: "waiting"
-      },
-      {
-        id: 3,
-        name: "Mike Davis",
-        rawInput: "Just browsing around, might be interested in trading in my car",
-        visitReason: "trade_in",
-        needsFinancing: null,
-        willFinalizePaperwork: null,
-        needsAppraisal: true,
-        wantsWarranty: false,
-        urgencyLevel: "low",
-        preferredTimeframe: "this month",
-        intentType: "trade-in",
-        timeAllocation: "standard",
-        score: calculateScore({
-          visitReason: "trade_in",
-          needsAppraisal: true,
-          wantsWarranty: false,
-          urgencyLevel: "low",
-          preferredTimeframe: "this month"
-        }),
-        createdAt: new Date(Date.now() - 1000 * 60 * 45), // 45 minutes ago
-        status: "waiting"
-      },
-      {
-        id: 4,
-        name: "Lisa Chen",
-        rawInput: "I need to buy a car urgently for work, budget around $25k",
-        visitReason: "test_drive",
-        needsFinancing: true,
-        willFinalizePaperwork: true,
-        needsAppraisal: null,
-        wantsWarranty: true,
-        urgencyLevel: "high",
-        preferredTimeframe: "today",
-        intentType: "purchase",
-        timeAllocation: "extended",
-        score: calculateScore({
-          visitReason: "test_drive",
-          needsFinancing: true,
-          willFinalizePaperwork: true,
-          wantsWarranty: true,
-          urgencyLevel: "high",
-          preferredTimeframe: "today"
-        }),
-        createdAt: new Date(Date.now() - 1000 * 60 * 5), // 5 minutes ago
-        status: "waiting"
+  // Fetch customers from API
+  const fetchCustomers = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/customers`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch customers');
       }
-    ];
-    setCustomers(sampleCustomers);
+      const data = await response.json();
+      setCustomers(data);
+    } catch (error) {
+      console.error('Error fetching customers:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Load customers on component mount
+  useEffect(() => {
+    fetchCustomers();
   }, []);
 
-  const addCustomer = (customerData) => {
-    const newCustomer = {
-      id: Date.now(),
-      ...customerData,
-      score: calculateScore(customerData),
-      createdAt: new Date(),
-      status: "waiting"
-    };
-    setCustomers(prev => [...prev, newCustomer]);
+  const addCustomer = async (customerData) => {
+    try {
+      const newCustomer = {
+        ...customerData,
+        score: calculateScore(customerData)
+      };
+
+      const response = await fetch(`${API_BASE_URL}/customers`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(newCustomer),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to add customer');
+      }
+
+      const addedCustomer = await response.json();
+      console.log('Customer added successfully:', addedCustomer);
+      
+      // Refresh the customers list
+      await fetchCustomers();
+    } catch (error) {
+      console.error('Error adding customer:', error);
+    }
   };
 
   const handleProceedToScheduling = (customerData) => {
     setCurrentCustomer(customerData);
-    setCurrentView('scheduling');
+    navigate('/scheduling');
   };
 
-  const handleAppointmentScheduled = (appointmentData) => {
-    // Add appointment to list
-    setAppointments(prev => [...prev, appointmentData]);
-    
-    // Update customer status
-    setCustomers(prev => prev.map(customer => 
-      customer.id === appointmentData.customerId 
-        ? { ...customer, status: "scheduled" }
-        : customer
-    ));
-    
-    // Show success message and return to onboarding
-    alert(`Appointment scheduled for ${appointmentData.customerName} at ${appointmentData.appointmentTime.toLocaleString()}`);
-    setCurrentView('onboarding');
-    setCurrentCustomer(null);
+  const handleAppointmentScheduled = async (appointmentData) => {
+    try {
+      // Add appointment to list
+      setAppointments(prev => [...prev, appointmentData]);
+      
+      // Update customer status in database
+      const response = await fetch(`${API_BASE_URL}/customers/${appointmentData.customerId}/status`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ status: 'scheduled' }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update customer status');
+      }
+
+      // Refresh customers list
+      await fetchCustomers();
+      
+      // Show success message and return to onboarding
+      alert(`Appointment scheduled for ${appointmentData.customerName} at ${appointmentData.appointmentTime.toLocaleString()}`);
+      navigate('/customer-entry');
+      setCurrentCustomer(null);
+    } catch (error) {
+      console.error('Error updating customer status:', error);
+    }
   };
 
   const handleBackFromScheduling = () => {
-    setCurrentView('onboarding');
+    navigate('/customer-entry');
     setCurrentCustomer(null);
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading customers...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -161,10 +129,11 @@ function App() {
               </span>
             </div>
             <nav className="flex space-x-4">
+              {/*
               <button
-                onClick={() => setCurrentView('onboarding')}
+                onClick={() => navigate('/customer-entry')}
                 className={`px-3 py-2 rounded-md text-sm font-medium ${
-                  currentView === 'onboarding'
+                  location.pathname === '/customer-entry'
                     ? 'bg-blue-100 text-blue-700'
                     : 'text-gray-500 hover:text-gray-700'
                 }`}
@@ -172,15 +141,16 @@ function App() {
                 Customer Entry
               </button>
               <button
-                onClick={() => setCurrentView('queue')}
+                onClick={() => navigate('/queue-display')}
                 className={`px-3 py-2 rounded-md text-sm font-medium ${
-                  currentView === 'queue'
+                  location.pathname === '/queue-display'
                     ? 'bg-blue-100 text-blue-700'
                     : 'text-gray-500 hover:text-gray-700'
                 }`}
               >
                 Queue Display
               </button>
+              */}
             </nav>
           </div>
         </div>
@@ -188,20 +158,25 @@ function App() {
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {currentView === 'onboarding' ? (
-          <CustomerOnboarding 
-            onCustomerAdded={addCustomer} 
-            onProceedToScheduling={handleProceedToScheduling}
-          />
-        ) : currentView === 'scheduling' ? (
-          <AppointmentScheduler 
-            customer={currentCustomer}
-            onAppointmentScheduled={handleAppointmentScheduled}
-            onBack={handleBackFromScheduling}
-          />
-        ) : (
-          <QueueDisplay customers={customers} />
-        )}
+        <Routes>
+          <Route path="/customer-entry" element={
+            <CustomerOnboarding 
+              onCustomerAdded={addCustomer} 
+              onProceedToScheduling={handleProceedToScheduling}
+            />
+          } />
+          <Route path="/queue-display" element={
+            <QueueDisplay customers={customers} />
+          } />
+          <Route path="/scheduling" element={
+            <AppointmentScheduler 
+              customer={currentCustomer}
+              onAppointmentScheduled={handleAppointmentScheduled}
+              onBack={handleBackFromScheduling}
+            />
+          } />
+          <Route path="/" element={<Navigate to="/customer-entry" replace />} />
+        </Routes>
       </main>
 
       {/* Appointments Summary */}

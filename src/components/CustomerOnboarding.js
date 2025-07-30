@@ -136,6 +136,7 @@ const CustomerOnboarding = ({ onCustomerAdded, onProceedToScheduling }) => {
       
       // Add customer to queue
       onCustomerAdded(customerData);
+      console.log('Customer added, about to navigate to scheduling');
       
       // Proceed to scheduling
       onProceedToScheduling(customerData);

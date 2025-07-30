@@ -67,8 +67,16 @@ const QueueDisplay = ({ customers }) => {
   }, [optimizedQueue, sortBy, filterPriority]);
 
   const formatTimeAgo = (date) => {
+    // Ensure date is a Date object (handle both Date objects and date strings)
+    const dateObj = date instanceof Date ? date : new Date(date);
     const now = new Date();
-    const diffInMinutes = Math.floor((now - date) / (1000 * 60));
+    
+    // Check if the date is valid
+    if (isNaN(dateObj.getTime())) {
+      return 'Unknown';
+    }
+    
+    const diffInMinutes = Math.floor((now - dateObj) / (1000 * 60));
     
     if (diffInMinutes < 1) return 'Just now';
     if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
@@ -118,54 +126,64 @@ const QueueDisplay = ({ customers }) => {
   };
 
   return (
-    <div className="space-y-6">
-      {/* Header Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-white rounded-lg p-4 shadow-sm">
-          <div className="flex items-center">
-            <UserIcon className="w-8 h-8 text-blue-600" />
-            <div className="ml-3">
-              <p className="text-sm font-medium text-gray-500">Total Customers</p>
-              <p className="text-2xl font-bold text-gray-900">{customers.length}</p>
+    <div className="max-w-6xl mx-auto">
+      {/* Header */}
+      <div className="mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="bg-white rounded-lg p-4 shadow-sm">
+            <div className="flex items-center">
+              <UserIcon className="w-8 h-8 text-blue-600" />
+              <div className="ml-3">
+                <p className="text-sm font-medium text-gray-500">Total Customers</p>
+                <p className="text-2xl font-bold text-gray-900">{customers.length}</p>
+              </div>
             </div>
           </div>
-        </div>
-        
-        <div className="bg-white rounded-lg p-4 shadow-sm">
-          <div className="flex items-center">
-            <ExclamationTriangleIcon className="w-8 h-8 text-red-600" />
-            <div className="ml-3">
-              <p className="text-sm font-medium text-gray-500">High Priority</p>
-              <p className="text-2xl font-bold text-gray-900">
-                {customersWithAdjustedScores.filter(c => c.adjustedScore > 0.6).length}
-              </p>
+          
+          <div className="bg-white rounded-lg p-4 shadow-sm">
+            <div className="flex items-center">
+              <ExclamationTriangleIcon className="w-8 h-8 text-red-600" />
+              <div className="ml-3">
+                <p className="text-sm font-medium text-gray-500">High Priority</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {customersWithAdjustedScores.filter(c => c.adjustedScore > 0.6).length}
+                </p>
+              </div>
             </div>
           </div>
-        </div>
-        
-        <div className="bg-white rounded-lg p-4 shadow-sm">
-          <div className="flex items-center">
-            <ClockIcon className="w-8 h-8 text-yellow-600" />
-            <div className="ml-3">
-              <p className="text-sm font-medium text-gray-500">Average Wait</p>
-              <p className="text-2xl font-bold text-gray-900">
-                {Math.round(customersWithAdjustedScores.reduce((acc, c) => {
-                  const waitTime = (new Date() - c.createdAt) / (1000 * 60);
-                  return acc + waitTime;
-                }, 0) / customers.length)}m
-              </p>
+          
+          <div className="bg-white rounded-lg p-4 shadow-sm">
+            <div className="flex items-center">
+              <ClockIcon className="w-8 h-8 text-yellow-600" />
+              <div className="ml-3">
+                <p className="text-sm font-medium text-gray-500">Average Wait</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {(() => {
+                    const totalWaitTime = customersWithAdjustedScores.reduce((acc, c) => {
+                      const dateObj = c.createdAt instanceof Date ? c.createdAt : new Date(c.createdAt);
+                      if (isNaN(dateObj.getTime())) {
+                        return acc;
+                      }
+                      const waitTime = (new Date() - dateObj) / (1000 * 60);
+                      return acc + waitTime;
+                    }, 0);
+                    const averageWait = customers.length > 0 ? totalWaitTime / customers.length : 0;
+                    return `${Math.round(averageWait)}m`;
+                  })()}
+                </p>
+              </div>
             </div>
           </div>
-        </div>
-        
-        <div className="bg-white rounded-lg p-4 shadow-sm">
-          <div className="flex items-center">
-            <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-              <span className="text-green-600 font-bold">✓</span>
-            </div>
-            <div className="ml-3">
-              <p className="text-sm font-medium text-gray-500">Optimized</p>
-              <p className="text-2xl font-bold text-gray-900">K-NN</p>
+          
+          <div className="bg-white rounded-lg p-4 shadow-sm">
+            <div className="flex items-center">
+              <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                <span className="text-green-600 font-bold">✓</span>
+              </div>
+              <div className="ml-3">
+                <p className="text-sm font-medium text-gray-500">Optimized</p>
+                <p className="text-2xl font-bold text-gray-900">K-NN</p>
+              </div>
             </div>
           </div>
         </div>
